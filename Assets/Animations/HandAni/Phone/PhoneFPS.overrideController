@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: PhoneFPS
+  m_Controller: {fileID: 9100000, guid: 2a1cdacef81df714094e643fd33c5c0f, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 35c4cae562013ac4483f0bf7e9a5a812, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 7d25787989dc2a34b91c5e6f8d7ab638, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: b405a376a12b9954287a1bd96c2ffc91, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 177eb25ae3c29844bb120184b00b5548, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4d3e3fc3184a1f94fa5293da3a7c42f9, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 31bef4724bf7d7749aaa78f6f09970d1, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 41b693ae236df8344979ea46157f75ae, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 177eb25ae3c29844bb120184b00b5548, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 54b6730c574c8d34eb4f63907882c249, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: dd82bddd4413a3b4e9728056c45769de, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 0800297a0e9ed8c4fa0ed18bf6456590, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 0800297a0e9ed8c4fa0ed18bf6456590, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: cbdb4039d5d36d146a49ee23ad3436d1, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: cbdb4039d5d36d146a49ee23ad3436d1, type: 2}
