@@ -1,0 +1,24 @@
+{
+    "name": "ExplosiveFactory.Scripts",
+    "rootNamespace": "ExplosiveFactory",
+    "references": [
+        "Mirror",
+        "Mirror.Transports",
+        "Mirror.Components",
+        "UniTask",
+        "Unity.TextMeshPro",
+        "Unity.InputSystem",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Facepunch.Steamworks.Win64.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

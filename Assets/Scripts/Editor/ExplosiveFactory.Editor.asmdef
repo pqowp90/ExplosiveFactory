@@ -1,0 +1,24 @@
+{
+    "name": "ExplosiveFactory.Editor",
+    "rootNamespace": "ExplosiveFactory.Editor",
+    "references": [
+        "ExplosiveFactory.Scripts",
+        "Mirror",
+        "Mirror.Components",
+        "Mirror.Transports",
+        "Unity.TextMeshPro",
+        "Unity.InputSystem",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
