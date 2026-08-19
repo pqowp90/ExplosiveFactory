@@ -27,17 +27,18 @@ public class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
 
             if (_instance == null)
             {
-                Debug.LogWarning($"{typeof(T)} is not exist. Creating new instance.");
-                
-#if UNITY_EDITOR
-                if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode || UnityEditor.EditorApplication.isPaused || !UnityEditor.EditorApplication.isPlaying)
-                    throw new System.Exception($"Access {typeof(T)} when game is not playing");
-            
-#endif
+                if (!Application.isPlaying)
+                {
+                    return null!;
+                }
+
                 _instance = new GameObject(typeof(T).ToString()).AddComponent<T>();
             }
 
-            _instance.transform.SetParent(null);
+            if (_instance != null && _instance.transform.parent != null)
+            {
+                _instance.transform.SetParent(null);
+            }
 
             return _instance;
         }
