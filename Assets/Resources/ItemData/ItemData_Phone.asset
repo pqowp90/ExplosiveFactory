@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eee1656641a6f0e45ab07fa6ba13c298, type: 3}
+  m_Name: ItemData_Phone
+  m_EditorClassIdentifier: ExplosiveFactory.Item.Data::ExplosiveFactory.Item.Data.ItemData
+  id: Item_Phone
+  itemName: "\uC2A4\uB9C8\uD2B8\uD3F0 (Phone)"
+  description: "\uD1B5\uC2E0 \uBC0F \uC0C1\uD638\uC791\uC6A9\uC774 \uAC00\uB2A5\uD55C
+    \uC2A4\uB9C8\uD2B8\uD3F0."
+  icon: {fileID: 0}
+  prefab: {fileID: 100001, guid: e2222222222222222222222222222222, type: 3}
+  weight: 0.5
+  isCanPickup: 1
+  isCanThrow: 1
+  throwSpeedMultiplier: 1.0
+  collisionRadius: 0.5
+  handAnimatorOverride: {fileID: 22100000, guid: 2a8c8aed355fc4e4bb9964bdd6a65964, type: 2}
+  holdPositionOffset: {x: 0.12, y: -0.1, z: 0.25}
+  holdRotationOffset: {x: 0, y: 0, z: 0}
+  isVanishable: 0
+  vanishTime: 30

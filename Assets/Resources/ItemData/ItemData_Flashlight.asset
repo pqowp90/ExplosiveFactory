@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eee1656641a6f0e45ab07fa6ba13c298, type: 3}
+  m_Name: ItemData_Flashlight
+  m_EditorClassIdentifier: ExplosiveFactory.Item.Data::ExplosiveFactory.Item.Data.ItemData
+  id: Item_Flashlight
+  itemName: "\uC190\uC804\uB4F1 (Flashlight)"
+  description: "\uC5B4\uB450\uC6B4 \uACF3\uC744 \uBC1D\uD600\uC8FC\uB294 \uC190\uC804\uB4F1.
+    \uC6B0\uD074\uB9AD/F\uD0A4\uB85C On/Off."
+  icon: {fileID: 0}
+  prefab: {fileID: 100001, guid: e1111111111111111111111111111111, type: 3}
+  weight: 0.8
+  isCanPickup: 1
+  isCanThrow: 1
+  throwSpeedMultiplier: 1.2
+  collisionRadius: 0.5
+  handAnimatorOverride: {fileID: 22100000, guid: d956d39840b27fe43b3c05d5a91c736f, type: 2}
+  holdPositionOffset: {x: 0.15, y: -0.1, z: 0.3}
+  holdRotationOffset: {x: 0, y: 0, z: 0}
+  isVanishable: 0
+  vanishTime: 30

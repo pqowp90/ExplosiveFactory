@@ -1851,7 +1851,6 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1790684070}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1860,3 +1859,4 @@ SceneRoots:
   - {fileID: 748471788}
   - {fileID: 1467241237}
   - {fileID: 1306986966}
+
