@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PhoneItem : ItemEventBehaviour
 {
-    private HandyPhoneUI? handyPhoneUI;
+    private HandyPhoneUI handyPhoneUI;
     protected bool isHolding = false;
 
     public override void OnPickup(Item item)
@@ -53,9 +53,25 @@ public class PhoneItem : ItemEventBehaviour
             return;
         }
         base.OnUse(item);
+
+        if (handyPhoneUI == null)
+        {
+            if (item.HandyItemObject != null)
+                handyPhoneUI = item.HandyItemObject.GetComponent<HandyPhoneUI>();
+            else if (item.ItemHolder != null && item.ItemHolder.CurrentHandyItemObject != null)
+                handyPhoneUI = item.ItemHolder.CurrentHandyItemObject.GetComponent<HandyPhoneUI>();
+            else if (Player != null && Player.ItemHolder != null && Player.ItemHolder.CurrentHandyItemObject != null)
+                handyPhoneUI = Player.ItemHolder.CurrentHandyItemObject.GetComponent<HandyPhoneUI>();
+        }
+
+        Debug.Log($"[PhoneItem] OnUse. isHolding={isHolding}, handyPhoneUI={handyPhoneUI != null}");
+
         if (!isHolding)
         {
-            if (handyPhoneUI != null) handyPhoneUI.OpenHomeUI();
+            if (handyPhoneUI != null)
+            {
+                handyPhoneUI.OpenHomeUI();
+            }
             isHolding = true;
             if (Player != null && Player.PlayerAnimation != null)
             {

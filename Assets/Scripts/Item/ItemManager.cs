@@ -22,6 +22,23 @@ public class ItemSOManager : MonoSingleton<ItemSOManager>
         {
             _itemSoList.Add(itemSo);
         }
+
+        if (_itemSoList.Count == 0)
+        {
+            // SO가 없을 경우 기본 아이템 생성
+            var flashlight = ScriptableObject.CreateInstance<ItemSo>();
+            flashlight.itemID = 0;
+            flashlight.itemName = "Flashlight";
+            flashlight.itemPrice = 100;
+            _itemSoList.Add(flashlight);
+
+            var phone = ScriptableObject.CreateInstance<ItemSo>();
+            phone.itemID = 1;
+            phone.itemName = "Phone";
+            phone.itemPrice = 250;
+            _itemSoList.Add(phone);
+        }
+
         _itemSoList.Sort((x, y) => x.itemID.CompareTo(y.itemID));
     }
 }

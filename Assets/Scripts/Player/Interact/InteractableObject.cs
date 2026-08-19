@@ -13,14 +13,16 @@ public interface IInteractable
 
 public class InteractableObject : NetworkBehaviour, IInteractable
 {
-    private static int _noneOutline;
-    private static int _outline;
+    private static int _noneOutline = -1;
+    private static int _outline = -1;
     [SerializeField] protected GameObject RendererObject;
 
     protected virtual void Awake()
     {
-        _noneOutline = LayerMask.NameToLayer("ItemLayer");
-        _outline = LayerMask.NameToLayer("Outline");
+        int itemLayer = LayerMask.NameToLayer("ItemLayer");
+        int outlineLayer = LayerMask.NameToLayer("Outline");
+        _noneOutline = itemLayer >= 0 ? itemLayer : 0;
+        _outline = outlineLayer >= 0 ? outlineLayer : _noneOutline;
         if (RendererObject == null) RendererObject = gameObject;
     }
     public virtual void OnInteract()
@@ -30,11 +32,13 @@ public class InteractableObject : NetworkBehaviour, IInteractable
 
     public virtual void OnNotWatch()
     {
-        RendererObject.layer = _noneOutline;
+        if (_noneOutline >= 0)
+            RendererObject.layer = _noneOutline;
     }
 
     public virtual void OnWatch()
     {
-        RendererObject.layer = _outline;
+        if (_outline >= 0)
+            RendererObject.layer = _outline;
     }
 }

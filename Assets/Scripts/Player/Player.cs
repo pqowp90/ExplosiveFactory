@@ -64,9 +64,20 @@ public class Player : NetworkBehaviour, IPoolable
         ItemHolder = GetComponent<ItemHolder>();
         PlayerMove = GetComponent<PlayerMove>();
         PlayerRotate = GetComponent<PlayerRotate>();
-        PlayerInput = GetComponent<PlayerInput>();
         PlayerAnimation = GetComponent<PlayerAnimation>();
+        PlayerInput = GetComponent<PlayerInput>();
         InputController = GetComponent<InputController>();
+        if (Camera == null || HandCamera == null)
+        {
+            var cams = GetComponentsInChildren<Camera>(true);
+            foreach (var c in cams)
+            {
+                if (c.gameObject.name.ToLower().Contains("hand"))
+                    HandCamera = c;
+                else if (Camera == null)
+                    Camera = c;
+            }
+        }
     }
 
     public override void OnStartServer()

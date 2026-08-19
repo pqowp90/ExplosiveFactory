@@ -228,6 +228,7 @@ public class ItemHolder : NetworkBehaviour
     }
 
     private HandyItemObject _currentHandyItemObject;
+    public HandyItemObject CurrentHandyItemObject => _currentHandyItemObject;
     private void GetHandyTransformByHandyType()
     {
         foreach (var itemHandyTypeTransform in _itemHandyTypeTransforms)

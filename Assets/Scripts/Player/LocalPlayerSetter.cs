@@ -39,6 +39,12 @@ public class LocalPlayerSetter : NetworkBehaviour
                 }
             }
         }
+
+        if (_player != null)
+        {
+            if (_myCamera != null) _player.Camera = _myCamera;
+            if (_handCamera != null) _player.HandCamera = _handCamera;
+        }
     }
 
     private void SetRenderersShadowOnly(Transform target, bool shadowOnly)
@@ -107,6 +113,10 @@ public class LocalPlayerSetter : NetworkBehaviour
             {
                 SetRenderersShadowOnly(_player.PlayerBodyTransform, false);
             }
+
+            // 4. InteractHintUI 비활성화 (타 플레이어 화면에 표시되지 않도록)
+            var hintUI = transform.Find("InteractHintUI");
+            if (hintUI != null) hintUI.gameObject.SetActive(false);
         }
         else
         {

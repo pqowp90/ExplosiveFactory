@@ -52,6 +52,17 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     [ClientRpc]
     private void RpcTriggerEvent(int triggerID)
     {
+        if (_player != null && _player.ItemHolder != null)
+        {
+            if (_player.ItemHolder.CurrentHandyItemObject != null)
+            {
+                _player.ItemHolder.CurrentHandyItemObject.OnAnimationTriggerEvent(triggerID);
+            }
+            else if (_player.ItemHolder.HoldingItem != null && _player.ItemHolder.HoldingItem.HandyItemObject != null)
+            {
+                _player.ItemHolder.HoldingItem.HandyItemObject.OnAnimationTriggerEvent(triggerID);
+            }
+        }
     }
 
     public void SetRayDist(float rayDist)

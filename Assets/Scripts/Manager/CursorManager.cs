@@ -19,6 +19,10 @@ public class CursorManager : MonoSingleton<CursorManager>
     }
     public void SetCursor(CursorType cursorType, object obj = null)
     {
+        if (obj != null)
+        {
+            CursorStack.RemoveAll(x => x.Source == obj);
+        }
         CursorStack.Add(new CursorData { CursorType = cursorType, Source = obj });
         ApplyCursor(cursorType);
     }

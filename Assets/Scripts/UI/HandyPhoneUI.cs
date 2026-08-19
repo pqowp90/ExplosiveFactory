@@ -1,13 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;   //Canvas而댄룷?뚰듃瑜??ъ슜?댁빞 ?섎?濡?異붽?.
-using UnityEngine.EventSystems;    //PointerEventData瑜??ъ슜?댁빞 ?섎?濡?異붽?.
+using UnityEngine.UI;
 
 public class HandyPhoneUI : MonoBehaviour, IPoolable
 {
-
 	[SerializeField] private GameObject MainUI;
 	[SerializeField] private GameObject HomeUI;
 	[SerializeField] private GameObject InviteUI;
@@ -52,31 +50,38 @@ public class HandyPhoneUI : MonoBehaviour, IPoolable
 			UpBarUI.SetActive(false);
 		}
 		gameObject.SetActive(true);
-		_uiList.Peek().SetActive(false);
+		if (_uiList.Count > 0)
+			_uiList.Peek().SetActive(false);
 		_uiList.Push(gameObject);
 	}
 	public bool CloseUI()
 	{
 		Debug.Log("UI CLOSED");
-		_uiList.Pop().SetActive(false);
-		_uiList.Peek().SetActive(true);
-		if (_uiList.Peek() == MainUI) return false;
-		return true;
+		if (_uiList.Count > 0)
+			_uiList.Pop().SetActive(false);
+		if (_uiList.Count > 0)
+		{
+			_uiList.Peek().SetActive(true);
+			if (_uiList.Peek() == MainUI) return false;
+			return true;
+		}
+		return false;
 	}
 
 	public void OnSpawned()
 	{
+		_uiList.Clear();
 		_uiList.Push(MainUI);
-		MainUI.SetActive(true);
-		MainUI.SetActive(true);
-		HomeUI.SetActive(false);
-		InviteUI.SetActive(false);
-		BlackMarketUI.SetActive(false);
+		if (MainUI != null) MainUI.SetActive(true);
+		if (HomeUI != null) HomeUI.SetActive(false);
+		if (InviteUI != null) InviteUI.SetActive(false);
+		if (BlackMarketUI != null) BlackMarketUI.SetActive(false);
 	}
 
 	public void OnDespawned()
 	{
-		_uiList.Peek().SetActive(false);
+		if (_uiList.Count > 0)
+			_uiList.Peek().SetActive(false);
 		_uiList.Clear();
 	}
 }

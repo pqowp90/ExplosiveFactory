@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &1884679642479980569
 GameObject:
@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 228412751084831728}
   - component: {fileID: 4206122019121514932}
   - component: {fileID: 6813542290296696633}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: Phone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,7 +146,7 @@ GameObject:
   - component: {fileID: 2171800263175675571}
   - component: {fileID: 7670214162407677579}
   - component: {fileID: 7322808539860211607}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: Time
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -281,7 +281,7 @@ GameObject:
   - component: {fileID: 7338883849445641758}
   - component: {fileID: 4284901174363060980}
   - component: {fileID: 5293158239799380881}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: PowerButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -366,7 +366,7 @@ GameObject:
   - component: {fileID: 3188007082367170065}
   - component: {fileID: 5780573673089695414}
   - component: {fileID: 1804468641900474681}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: PhoneBody
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 4478043022663069407}
   - component: {fileID: 3071208826810316648}
   - component: {fileID: 7386786440034754680}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: Day
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -638,7 +638,7 @@ GameObject:
   - component: {fileID: 4442171678562620029}
   - component: {fileID: 3431994521819894432}
   - component: {fileID: 1946647013177560386}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -714,7 +714,7 @@ GameObject:
   - component: {fileID: 2206573363631813381}
   - component: {fileID: 3875362195017201137}
   - component: {fileID: 2672717143257263464}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: HomeButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -798,7 +798,7 @@ GameObject:
   - component: {fileID: 4132632943959695380}
   - component: {fileID: 1436045343427203368}
   - component: {fileID: 5303004818776460334}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -899,7 +899,7 @@ GameObject:
   - component: {fileID: 7299776753008212860}
   - component: {fileID: 9100877243756534616}
   - component: {fileID: 8066514770965691499}
-  m_Layer: 6
+  m_Layer: 11
   m_Name: VolumeButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}

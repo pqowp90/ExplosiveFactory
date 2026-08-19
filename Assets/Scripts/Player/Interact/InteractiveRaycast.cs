@@ -64,6 +64,12 @@ public class InteractiveRaycast : MonoBehaviour
                         }
                         _currentInteractable.OnInteract();
                     }
+
+                    SetInteractText(_currentInteractable);
+                }
+                else
+                {
+                    ClearInteractText();
                 }
             }
         }
@@ -74,6 +80,7 @@ public class InteractiveRaycast : MonoBehaviour
                 _currentInteractable.OnNotWatch();
                 _currentInteractable = null;
             }
+            ClearInteractText();
         }
 
         bool dropTriggered = Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame;
@@ -81,5 +88,24 @@ public class InteractiveRaycast : MonoBehaviour
         {
             _player.ItemHolder.DropItem();
         }
+    }
+
+    private void SetInteractText(IInteractable interactable)
+    {
+        if (interactText == null) return;
+        interactText.gameObject.SetActive(true);
+
+        if (interactable is ItemVendingMachine)
+            interactText.text = "<b>[F]</b> 아이템 뽑기";
+        else if (interactable is Item)
+            interactText.text = "<b>[F]</b> 줍기";
+        else
+            interactText.text = "<b>[F]</b> 상호작용";
+    }
+
+    private void ClearInteractText()
+    {
+        if (interactText == null) return;
+        interactText.gameObject.SetActive(false);
     }
 }

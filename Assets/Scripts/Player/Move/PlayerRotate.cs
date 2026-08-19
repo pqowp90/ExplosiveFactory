@@ -78,25 +78,10 @@ public class PlayerRotate : NetworkBehaviour
     {
         if (!isOwned) return;
 
-        // 클릭 시 커서가 UI 모드면 다시 플레이어 락
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        // UI 커서 상태일 때는 마우스 시야 회전을 수행하지 않음
+        if (CursorManager.Instance != null && CursorManager.Instance.CurrentCursor == CursorType.UI)
         {
-            if (CursorManager.Instance != null && CursorManager.Instance.CurrentCursor != CursorType.Player)
-            {
-                CursorManager.Instance.SetCursor(CursorType.Player, this);
-            }
-        }
-
-        // ESC를 누르면 커서 언락 토글
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            if (CursorManager.Instance != null)
-            {
-                if (CursorManager.Instance.CurrentCursor == CursorType.Player)
-                    CursorManager.Instance.SetCursor(CursorType.UI, this);
-                else
-                    CursorManager.Instance.SetCursor(CursorType.Player, this);
-            }
+            return;
         }
 
         RotateMove();
