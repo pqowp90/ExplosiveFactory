@@ -144,7 +144,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.1.0
+  bundleVersion: 0.0.0.1
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -826,7 +826,8 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Standalone: MIRROR;MIRROR_79_OR_NEWER;MIRROR_81_OR_NEWER;MIRROR_82_OR_NEWER;MIRROR_83_OR_NEWER;MIRROR_84_OR_NEWER;MIRROR_85_OR_NEWER;MIRROR_86_OR_NEWER;MIRROR_89_OR_NEWER
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
