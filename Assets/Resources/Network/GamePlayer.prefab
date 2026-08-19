@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &885038945924518209
 GameObject:
@@ -75,7 +75,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 128
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: 0152389ca2eab4b4f8cfb3f9df8c0878, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -744,6 +744,7 @@ GameObject:
   - component: {fileID: 2356225908866846383}
   - component: {fileID: 2715720535156344462}
   - component: {fileID: 1785722047829716221}
+  - component: {fileID: 1933384084511691537}
   - component: {fileID: 1225050041091814139}
   - component: {fileID: 5808580400793092026}
   - component: {fileID: 455863081144415885}
@@ -751,7 +752,7 @@ GameObject:
   - component: {fileID: 4159627976724627172}
   - component: {fileID: 6718751537525774079}
   - component: {fileID: 3903740195909378244}
-  m_Layer: 3
+  m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -874,6 +875,23 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &1933384084511691537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3944694386142785221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b62d084a6fb66740a767420ad004c81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0.1
+  IsReady: 0
+  player: {fileID: 0}
 --- !u!114 &1225050041091814139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -969,8 +987,8 @@ MonoBehaviour:
   PlayerInput: {fileID: 0}
   PlayerBodyTransform: {fileID: 6368314774866060621}
   PlayerHandTransform: {fileID: 6678302551413344143}
-  Camera: {fileID: 7976471606809578931}
-  HandCamera: {fileID: 5837207666424861578}
+  Camera: {fileID: 0}
+  HandCamera: {fileID: 0}
 --- !u!114 &4159627976724627172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1397,7 +1415,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3415
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: 0152389ca2eab4b4f8cfb3f9df8c0878, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1

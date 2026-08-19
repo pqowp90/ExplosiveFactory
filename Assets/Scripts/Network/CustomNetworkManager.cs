@@ -259,6 +259,7 @@ namespace ExplosiveFactory.Network
             }
             else if (currentScene == gameSceneName)
             {
+                SpawnSceneVendingMachine();
                 SpawnGamePlayer(conn);
             }
         }
@@ -280,6 +281,8 @@ namespace ExplosiveFactory.Network
             }
             else if (sceneName == gameSceneName)
             {
+                SpawnSceneVendingMachine();
+
                 foreach (var conn in NetworkServer.connections.Values)
                 {
                     if (conn != null && conn.isReady)
@@ -287,6 +290,22 @@ namespace ExplosiveFactory.Network
                         SpawnGamePlayer(conn);
                     }
                 }
+            }
+        }
+
+        private void SpawnSceneVendingMachine()
+        {
+            if (!NetworkServer.active) return;
+
+            var existing = FindFirstObjectByType<ItemVendingMachine>();
+            if (existing != null) return;
+
+            var vmPrefab = Resources.Load<GameObject>("Network/ItemVendingMachine");
+            if (vmPrefab != null)
+            {
+                var vmObj = Instantiate(vmPrefab, new Vector3(0, 0, 3.5f), Quaternion.Euler(0, 180, 0));
+                NetworkServer.Spawn(vmObj);
+                Debug.Log("[CustomNetworkManager] Spawned network ItemVendingMachine in scene.");
             }
         }
 

@@ -197,6 +197,16 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         _isHoldingItem = holdingItem;
     }
+    public void SetAnimatorController(HandyItemObject handyItemObject)
+    {
+        if (handyItemObject == null)
+        {
+            SetAnimatorController(null, null);
+            return;
+        }
+        SetAnimatorController(handyItemObject.HandAnimatorOverrideController, handyItemObject.BodyAnimatorOverrideController);
+    }
+
     public void SetAnimatorController(RuntimeAnimatorController handController = null, RuntimeAnimatorController bodyController = null)
     {
         if (isOwned && handController != null && _handAnimator != null)

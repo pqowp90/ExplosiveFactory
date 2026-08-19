@@ -7,6 +7,8 @@ using UnityEngine.InputSystem;
 public class Player : NetworkBehaviour, IPoolable
 {
     [HideInInspector]
+    public ItemHolder ItemHolder;
+    [HideInInspector]
     public PlayerMove PlayerMove;
     [HideInInspector]
     public PlayerRotate PlayerRotate;
@@ -29,7 +31,7 @@ public class Player : NetworkBehaviour, IPoolable
             if (_inputController == null)
             {
                 Debug.LogError("InputController is null, Returning null");
-                return null;
+                return null!;
             }
             if (!_inputController.IsInitialized)
                 _inputController.Initialize();
@@ -59,6 +61,7 @@ public class Player : NetworkBehaviour, IPoolable
 
     private void Awake()
     {
+        ItemHolder = GetComponent<ItemHolder>();
         PlayerMove = GetComponent<PlayerMove>();
         PlayerRotate = GetComponent<PlayerRotate>();
         PlayerInput = GetComponent<PlayerInput>();
