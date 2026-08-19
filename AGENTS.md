@@ -1,0 +1,100 @@
+# ExplosiveFactory — Agent Guidelines & Project Architecture
+
+> **이 파일은 모든 코딩 에이전트(Antigravity, Claude Code 등)가 공유하는 단일 진실 공급원(Single Source of Truth, SSOT)입니다.**
+> 프로젝트 내 모든 작업(아이템 추가, 네트워크 기능 구현, 씬/프리팹 수정) 시 이 가이드라인을 최우선으로 준수합니다.
+
+---
+
+## 1. 프로젝트 개요 및 환경 (Tech Stack)
+
+- **Engine:** Unity 6 (6000.3.16f1)
+- **Physics:** 3D Rigidbody (Linear Velocity는 `rb.linearVelocity` 사용)
+- **Networking:** Mirror Networking (kcp / FizzyFacepunch Steam Transport)
+- **Platform:** Steamworks.NET / Facepunch.Steamworks
+- **Animation / Tweening:** Unity Animator (1인칭 / 3인칭 오버라이드 지원), DOTween, LitMotion
+- **Resources:** `Resources.Load` 및 `LazyAddressable` (Addressables 조건부 폴백 지원)
+
+---
+
+## 2. 핵심 아키텍처 & 디렉토리 구조
+
+```
+Assets/
+├── 00_Asset/              # 3D 모델, 텍스처, 사운드 등 원본 에셋 (Flashlight, Phone 등)
+├── Mirror/                # Mirror 네트워킹 핵심 라이브러리
+├── Prefabs/               # 일반 프리팹 (PlayerEntry 등)
+├── Resources/
+│   ├── ItemData/          # 아이템 ScriptableObject 데이터 (ItemData_Flashlight, ItemData_Phone 등)
+│   └── Network/           # [중요] 모든 NetworkIdentity 스폰 가능 프리팹 보관 디렉토리
+│       ├── Item_Flashlight.prefab
+│       ├── Item_Phone.prefab
+│       ├── ItemVendingMachine.prefab
+│       ├── GamePlayer.prefab
+│       └── LobbyPlayer.prefab
+├── Scenes/                # 메인 씬 (MainMenuScene, LobbyScene, GameScene)
+└── Scripts/
+    ├── Item/
+    │   ├── Base/          # Item.cs, ItemHolder.cs, ItemManager.cs, HandyItemObject.cs
+    │   ├── Data/          # ItemData.cs (ScriptableObject)
+    │   ├── Implement/     # FlashlightItem.cs, PhoneItem.cs 등 구체적 아이템 구현
+    │   └── ItemVendingMachine.cs  # 아이템 자판기
+    ├── Network/           # CustomNetworkManager.cs, SteamLobby.cs 등
+    ├── Player/            # Player.cs, PlayerMove.cs, PlayerRotate.cs, PlayerItemInteraction.cs
+    └── Utils/             # MonoSingleton.cs, NetworkSingleton.cs, NetworkUuid.cs, LazyResource.cs
+```
+
+---
+
+## 3. 네트워크(Mirror) 프로그래밍 규칙
+
+1. **프리팹 보관 위치:**
+   - 네트워크 상에서 `NetworkServer.Spawn`으로 동적 생성되는 모든 프리팹은 반드시 **`Assets/Resources/Network/`** 폴더 아래에 위치해야 합니다.
+   - `CustomNetworkManager.EnsurePrefabsLoaded()`가 `Resources/Network`의 모든 프리팹을 자동으로 `spawnPrefabs`에 등록하고 `NetworkClient.RegisterPrefab`을 수행합니다.
+
+2. **씬 오브젝트와 동적 스폰:**
+   - 씬 파일에 `NetworkIdentity`를 가진 정적 오브젝트를 하드코딩하지 않습니다 (씬 ID 충돌 및 미싱 방지).
+   - 공용 시설(예: 자판기 `ItemVendingMachine`)은 씬 전환 시 서버(`OnServerSceneChanged` 또는 `OnServerReady`)에서 네트워크 프리팹을 동적으로 스폰(`NetworkServer.Spawn`)합니다.
+
+3. **소유권 및 LocalPlayer 검사 안전성:**
+   - 런타임에 동적으로 `AddComponent`되는 컴포넌트는 `NetworkBehaviour` 대신 **`MonoBehaviour`**를 사용하고, 부모/루트 `Player`의 `player.isLocalPlayer` / `player.isOwned`를 검사합니다.
+   - `MonoSingleton.Instance` 호출 시 에디터 비재생 상태에서 불필요한 예외(`throw Exception`)를 던지지 않고 안전한 폴백을 수행합니다.
+
+4. **네트워크 동기화 컴포넌트 GUID:**
+   - Mirror `NetworkIdentity`: `guid: 9b91ecbcc199f4492b9a91e820070131`
+   - Mirror `NetworkTransformReliable`: `guid: 8ff3ba0becae47b8b9381191598957c8`
+
+---
+
+## 4. 아이템 시스템 구조 (Item Pipeline)
+
+### A. 아이템 데이터 (`ItemData.cs`)
+- `ScriptableObject` 기반으로 무게, 줍기/던지기 가능 여부, 던지기 힘 배율, 1인칭 손 애니메이터 오버라이드(`handAnimatorOverride`), 손 부착 오프셋(`holdPositionOffset`, `holdRotationOffset`)을 정의합니다.
+- 저장 위치: `Assets/Resources/ItemData/ItemData_{ItemName}.asset`
+
+### B. 아이템 엔티티 (`Item.cs`)
+- 바닥에 놓여 있을 때(`Grounded`), 손에 쥐어졌을 때(`Held`), 던져졌을 때(`Thrown`)의 상태 머신을 관리합니다.
+- 손에 쥐어질 때 `NetworkTransform` 동기화를 자동으로 끄고 손 트랜스폼의 자식으로 고정하며, 떨어지거나 던져질 때 다시 켜고 물리 속도를 부여합니다.
+
+### C. 플레이어 아이템 홀더 (`ItemHolder.cs` & `PlayerItemInteraction.cs`)
+- **조작 매핑 (Team_Secret_Boar 정통 키배치):**
+  - **`F` 키**: 시선에 있는 아이템 줍기(`TryPickup`) / 자판기 상호작용
+  - **`G` 키**: 들고 있는 아이템 바닥에 버리기(`TryDrop`)
+  - **`마우스 좌클릭 / 우클릭`**: 들고 있는 아이템 기능 사용(`TryUseHoldingItem`) - 손전등 라이트 토글, 폰 화면 등
+  - **`마우스 휠`**: 인벤토리 슬롯 전환
+- 1인칭 카메라와 손 소켓에 맞춰 아이템을 안정적으로 정렬하고 들고 있는 아이템에 맞는 손 애니메이션 오버라이드를 자동 교체합니다.
+
+### D. 아이템 스폰 관리 (`ItemManager.cs` & `ItemVendingMachine.cs`)
+- 서버 전용 `ItemManager.SpawnItem(prefab, position, rotation, data)`를 통해 네트워크 풀링 및 동기화 스폰을 수행합니다.
+
+---
+
+## 5. 코딩 및 에셋 작업 원칙
+
+1. **추측성 시그니처 작성 금지:**
+   - 기존 클래스를 상속하거나 메서드를 오버라이드할 때 반드시 `view_file`로 원본 코드를 확인하고 작성합니다.
+2. **Unity 6 API 준수:**
+   - Rigidbody의 속도 설정은 `linearVelocity`를 사용합니다.
+3. **직렬화 필드 100% 매핑:**
+   - 생성하거나 수정한 프리팹의 `SerializeField` 레퍼런스(MeshFilter, MeshRenderer, Collider, Rigidbody, AudioSource 등)가 인스펙터 상에서 `Missing`이나 `None`이 되지 않도록 에셋 GUID 및 SubMesh ID를 정확하게 연결합니다.
+4. **시선 기반 Raycast 상호작용:**
+   - 모든 오브젝트 상호작용은 카메라 시선 레이캐스트(Raycast)를 기본으로 하여 FPS 조준에 맞게 정밀하게 반응하도록 구성합니다.
