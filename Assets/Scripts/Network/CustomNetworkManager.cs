@@ -357,16 +357,14 @@ namespace ExplosiveFactory.Network
             }
             else
             {
-                // Fallback Dynamic Runtime GamePlayer
+                // Fallback Dynamic Runtime GamePlayer (3D)
                 gamePlayer = new GameObject($"GamePlayer_{pName}");
                 if (spawnPos != null) gamePlayer.transform.position = spawnPos.position;
 
-                var rb = gamePlayer.AddComponent<Rigidbody2D>();
-                rb.gravityScale = 0f;
-                rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-
-                var col = gamePlayer.AddComponent<CircleCollider2D>();
-                col.radius = 0.5f;
+                var cc = gamePlayer.AddComponent<CharacterController>();
+                cc.height = 1.8f;
+                cc.radius = 0.35f;
+                cc.center = new Vector3(0f, 0.9f, 0f);
 
                 gamePlayer.AddComponent<NetworkIdentity>();
                 gamePlayer.AddComponent<NetworkTransformReliable>();

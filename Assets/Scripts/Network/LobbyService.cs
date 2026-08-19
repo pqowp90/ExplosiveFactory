@@ -144,10 +144,23 @@ namespace ExplosiveFactory.Network
         {
             if (CurrentLobby.HasValue)
             {
-                Debug.Log($"[LobbyService] Leaving lobby: {CurrentLobby.Value.Id}");
-                CurrentLobby.Value.Leave();
-                CurrentLobby = null;
-                OnLobbyLeftEvent?.Invoke();
+                try
+                {
+                    if (SteamClient.IsValid)
+                    {
+                        Debug.Log($"[LobbyService] Leaving lobby: {CurrentLobby.Value.Id}");
+                        CurrentLobby.Value.Leave();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[LobbyService] LeaveLobby exception ignored: {ex.Message}");
+                }
+                finally
+                {
+                    CurrentLobby = null;
+                    OnLobbyLeftEvent?.Invoke();
+                }
             }
         }
 

@@ -34,29 +34,10 @@ namespace ExplosiveFactory.Network
             if (isLocalPlayer || isOwned)
             {
                 LocalPlayer = this;
-                if (_playerMove != null) _playerMove.enabled = true;
-                if (playerCamera != null)
-                {
-                    playerCamera.gameObject.SetActive(true);
-                    playerCamera.tag = "MainCamera";
-                }
                 if (nameText != null) nameText.gameObject.SetActive(false);
-
-                // 씬 내 중복 기본 카메라 끄기
-                var sceneCams = FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-                foreach (var c in sceneCams)
-                {
-                    if (c != playerCamera && c.gameObject.name == "Main Camera")
-                    {
-                        c.gameObject.SetActive(false);
-                    }
-                }
             }
             else
             {
-                // 원격 플레이어: 로컬 조작 및 카메라 비활성화
-                if (_playerMove != null) _playerMove.enabled = false;
-                if (playerCamera != null) playerCamera.gameObject.SetActive(false);
                 if (nameText != null) nameText.gameObject.SetActive(true);
             }
 
@@ -67,13 +48,16 @@ namespace ExplosiveFactory.Network
         {
             base.OnStartLocalPlayer();
             LocalPlayer = this;
-            if (_playerMove != null) _playerMove.enabled = true;
-            if (playerCamera != null)
-            {
-                playerCamera.gameObject.SetActive(true);
-                playerCamera.tag = "MainCamera";
-            }
             if (nameText != null) nameText.gameObject.SetActive(false);
+        }
+
+        public override void OnStopClient()
+        {
+            base.OnStopClient();
+            if (isLocalPlayer || isOwned)
+            {
+                LocalPlayer = null!;
+            }
         }
 
         private void OnNameChanged(string oldName, string newName)
