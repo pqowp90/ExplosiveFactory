@@ -108,29 +108,51 @@ public class LookAtController : MonoBehaviour
             }
             else
             {
-                // 빈손 상태: 머리와 시선이 타겟을 부드럽게 바라보도록 LookAt IK 동작
+                // 빈손 상태: 유니티 LookAt IK에 자연스러운 전신 시선 제어 위임 (몸통 15%, 머리/목 85%)
                 _networkAnimator.SetLookAtPosition(objectToLookAt.position);
-                _networkAnimator.SetLookAtWeight(1f, 0.05f, 0.8f, 0.5f, 0.5f);
+                _networkAnimator.SetLookAtWeight(1f, 0.15f, 0.85f, 0.5f, 0.5f);
             }
         }
     }
 
     private void LateUpdate()
     {
-        // 1. 플레이어 몸체(루트)의 수평 기준 각도 (Yaw)
-        float bodyYaw = _player != null ? _player.transform.eulerAngles.y : transform.parent != null ? transform.parent.eulerAngles.y : transform.eulerAngles.y;
-
-        // 2. 시선 타겟을 향한 상하 각도 (Pitch) 100% 계산
-        float fullPitch = 0f;
-        if (objectToLookAt != null)
+        // 1. 카메라 시선 Yaw와 몸체(다리) 실제 Yaw 계산
+        float cameraYaw = _player != null ? _player.transform.eulerAngles.y : transform.eulerAngles.y;
+        if (_player != null && _player.Camera != null)
         {
-            Vector3 lookDir = objectToLookAt.position - transform.position;
-            float horizontalDist = new Vector2(lookDir.x, lookDir.z).magnitude;
-            if (horizontalDist > 0.001f)
+            cameraYaw = _player.Camera.transform.eulerAngles.y;
+        }
+        float bodyYaw = _realRotation;
+        float deltaYaw = Mathf.DeltaAngle(bodyYaw, cameraYaw);
+
+        // 2. 시선 타겟 / 카메라를 향한 상하 각도 (Pitch) 100% 선형 계산
+        float fullPitch = 0f;
+        if (_player != null && _player.Camera != null)
+        {
+            float camPitch = _player.Camera.transform.eulerAngles.x;
+            if (camPitch > 180f) camPitch -= 360f;
+            fullPitch = Mathf.Clamp(camPitch, -maxPitchAngle, maxPitchAngle);
+        }
+        else if (objectToLookAt != null)
+        {
+            float targetPitch = objectToLookAt.eulerAngles.x;
+            if (targetPitch > 180f) targetPitch -= 360f;
+            if (Mathf.Abs(targetPitch) > 0.01f)
             {
-                // 위를 보면 음수각(-), 아래를 보면 양수각(+)
-                fullPitch = -Mathf.Atan2(lookDir.y, horizontalDist) * Mathf.Rad2Deg;
-                fullPitch = Mathf.Clamp(fullPitch, -maxPitchAngle, maxPitchAngle);
+                fullPitch = Mathf.Clamp(targetPitch, -maxPitchAngle, maxPitchAngle);
+            }
+            else
+            {
+                // 가슴/눈 높이(Y: ~1.4m) 기준으로 상대 벡터 계산하여 발바닥 Atan2 왜곡 방지
+                Vector3 origin = _chestTransform != null ? _chestTransform.position : transform.position + Vector3.up * 1.4f;
+                Vector3 lookDir = objectToLookAt.position - origin;
+                float horizontalDist = new Vector2(lookDir.x, lookDir.z).magnitude;
+                if (horizontalDist > 0.001f)
+                {
+                    fullPitch = -Mathf.Atan2(lookDir.y, horizontalDist) * Mathf.Rad2Deg;
+                    fullPitch = Mathf.Clamp(fullPitch, -maxPitchAngle, maxPitchAngle);
+                }
             }
         }
 
@@ -138,12 +160,13 @@ public class LookAtController : MonoBehaviour
 
         if (isHolding)
         {
-            // [아이템 파지 상태] ➔ 상체 월드 고정 + 상하 50/50 조준
-            // 1단계: 허리(Spine)에 50% 회전 적용 (골반 롤링 차단 + 하부 척추 굽힘)
+            // [아이템 파지 상태] ➔ 다리 고정/턴 각도와 완벽 결합된 상체 50/50 조준
+            // 1단계: 허리(Spine)에 좌우 50% + 상하 50% 회전 적용
             if (_spineTransform != null)
             {
                 float spinePitch = fullPitch * spinePitchRatio;
-                Quaternion targetSpineRotation = Quaternion.Euler(spinePitch, bodyYaw, 0f);
+                float spineYaw = bodyYaw + deltaYaw * 0.5f;
+                Quaternion targetSpineRotation = Quaternion.Euler(0f, spineYaw, 0f) * Quaternion.Euler(spinePitch, 0f, 0f);
 
                 if (spineWorldStabilizeWeight >= 0.99f)
                 {
@@ -155,11 +178,12 @@ public class LookAtController : MonoBehaviour
                 }
             }
 
-            // 2단계: 가슴(Chest)에 나머지 50% 추가 적용 (총 100% 시선 각도 도달, 양팔/목/머리 최종 일치)
+            // 2단계: 가슴(Chest)에 좌우 100% + 상하 100% 회전 적용 (시선 완벽 일치)
             if (_chestTransform != null)
             {
                 float chestPitch = fullPitch * (spinePitchRatio + chestPitchRatio);
-                Quaternion targetChestRotation = Quaternion.Euler(chestPitch, bodyYaw, 0f);
+                float chestYaw = bodyYaw + deltaYaw;
+                Quaternion targetChestRotation = Quaternion.Euler(0f, chestYaw, 0f) * Quaternion.Euler(chestPitch, 0f, 0f);
 
                 if (spineWorldStabilizeWeight >= 0.99f)
                 {
@@ -168,29 +192,6 @@ public class LookAtController : MonoBehaviour
                 else
                 {
                     _chestTransform.rotation = Quaternion.Slerp(_chestTransform.rotation, targetChestRotation, spineWorldStabilizeWeight);
-                }
-            }
-        }
-        else
-        {
-            // [빈손 상태] ➔ Spine(30%) + Chest(30%) + Neck(20%) + Head(20%) 전체 관절에 부드러운 스플라인 분배
-            if (Mathf.Abs(fullPitch) > 0.01f)
-            {
-                if (_spineTransform != null)
-                {
-                    _spineTransform.localRotation *= Quaternion.Euler(fullPitch * 0.3f, 0f, 0f);
-                }
-                if (_chestTransform != null)
-                {
-                    _chestTransform.localRotation *= Quaternion.Euler(fullPitch * 0.3f, 0f, 0f);
-                }
-                if (_neckTransform != null)
-                {
-                    _neckTransform.localRotation *= Quaternion.Euler(fullPitch * 0.2f, 0f, 0f);
-                }
-                if (_headTransform != null)
-                {
-                    _headTransform.localRotation *= Quaternion.Euler(fullPitch * 0.2f, 0f, 0f);
                 }
             }
         }
