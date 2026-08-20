@@ -222,6 +222,12 @@ public class FirstPersonLegsController : MonoBehaviour
         Vector3 camBackward = -camForward;
 
         Vector3 basePos = _player != null ? _player.transform.position : transform.position;
+        if (_player != null && _player.PlayerBodyTransform != null)
+        {
+            // 앉기(Crouch) 등으로 인해 3인칭 몸체 높이가 보정되는 월드 Y 좌표를 그대로 동기화하여 파묻힘 방지
+            basePos.y = _player.PlayerBodyTransform.position.y;
+        }
+
         if (_cameraTransform != null)
         {
             // 카메라의 수평(X, Z) 위치를 추종하여 시선 중심축 정렬
@@ -229,7 +235,7 @@ public class FirstPersonLegsController : MonoBehaviour
             basePos.z = _cameraTransform.position.z;
         }
 
-        // 다리 루트 위치: 플레이어/카메라 중심 기준 유지
+        // 다리 루트 위치: 3인칭 몸체 지면 높이(Y) 및 카메라 중심(X, Z) 완벽 유지
         transform.position = basePos;
 
         // 4. 상체 본 체인(Spine -> Chest -> UpperChest)을 위로 갈수록 비스듬히 점진적으로 더 뒤로 빼기 (회전 없이 위치만 점진적 오프셋)

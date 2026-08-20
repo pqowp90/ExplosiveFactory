@@ -74,6 +74,7 @@ GamePlayer (NetworkIdentity, Player, LocalPlayerSetter)
   - 로컬 플레이어 시점에서 `ShadowsOnly` 모드로 동작하여 바닥에 완벽한 전신 사람 그림자를 캐스팅.
 - **1인칭 전용 다리 (`PlayerLegTransform` / `FirstPersonLegsController`):**
   - 로컬 플레이어 화면에만 활성화 및 렌더링되며, 리모트 플레이어는 3인칭 몸체만 렌더링.
+  - **앉기(Crouch) 시 지면 높이(Y) 동기화:** 앉을 때 CharacterController 높이 축소로 인한 루트 하강을 보정하기 위해, `basePos.y`를 `PlayerBodyTransform.position.y`와 실시간 동기화하여 앉을 때도 다리와 발이 바닥에 파묻히거나 공중에 뜨지 않고 완벽한 지면 접지 유지.
   - **프리팹 인스펙터 직렬화 설정(`FirstPersonLegsSettings`):** 불필요한 루트 위치/높이/커스텀 오프셋을 제거하고, 상체 각 부위별(Spine, Chest, UpperChest) 후방 및 상하 오프셋 설정만 깔끔하게 노출하여 프리팹 에셋에서 직관적으로 관리.
   - **무회전 점진적 상체 슬랜트(Slanted) 후방 오프셋:** 본의 억지 회전(Tilt)을 0으로 배제하고 다리와 골반(Hips)은 제자리에 고정하며, 척추 체인(`Spine: 0.15m, Up: 0.27m` ➔ `Chest: +0.15m, Up: 0.15m` ➔ `UpperChest: -0.16m`)을 점진적으로 뒤로 빼주어, 관절 왜곡 없이 상체만 비스듬하게 뒤로 쑥 물러난 사선형 1인칭 시야를 구현.
   - **카메라 시선 수평 후방(`camBackward`) 절대 기준 오프셋:** 좌우 이동(스트레이프)이나 회전으로 인해 몸체가 옆으로 돌아가더라도, 다리 루트 및 `Spine`/`Chest` 본의 후방 오프셋을 몸체 로컬이 아닌 **'카메라의 수평 시선 후방'**으로 계산하여 적용함으로써 좌우 이동 시 몸이 옆으로 삐져나가는 현상을 완벽 차단.
