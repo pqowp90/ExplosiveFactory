@@ -923,7 +923,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  SwayNBobScript: {fileID: 0}
+  SwayNBobScript: {fileID: 2528041441106261233}
 --- !u!114 &455863081144415885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -969,6 +969,12 @@ MonoBehaviour:
   PlayerInput: {fileID: 0}
   PlayerBodyTransform: {fileID: 6368314774866060621}
   PlayerHandTransform: {fileID: 6678302551413344143}
+  FirstPersonLegsSettings:
+    spineBackwardOffset: 0.15
+    spineUpwardOffset: 0.27
+    chestBackwardOffset: 0.15
+    chestUpwardOffset: 0.15
+    upperChestBackwardOffset: -0.16
   Camera: {fileID: 7976471606809578931}
   HandCamera: {fileID: 5837207666424861578}
 --- !u!114 &4159627976724627172

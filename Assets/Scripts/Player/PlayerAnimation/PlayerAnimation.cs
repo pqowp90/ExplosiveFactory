@@ -32,17 +32,31 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         if (_player != null && _player.PlayerBodyTransform != null)
             _bodyCustomNetworkAnimator = _player.PlayerBodyTransform.GetComponentInChildren<CustomNetworkAnimator>();
         if (_player != null && _player.PlayerLegTransform != null)
+        {
             _legAnimator = _player.PlayerLegTransform.GetComponentInChildren<Animator>();
+            if (_legAnimator != null)
+            {
+                _legAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            }
+        }
         if (_player != null && _player.PlayerHandTransform != null)
         {
             _handAnimator = _player.PlayerHandTransform.GetComponent<Animator>();
             if (_handAnimator != null)
             {
+                _handAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 _animationTriggerEventHolder = _handAnimator.GetComponent<AnimationTriggerEventHolder>();
                 if (_animationTriggerEventHolder != null)
                 {
                     _animationTriggerEventHolder.SetOnAnimationTriggerEvent(CmdTriggerEvent);
                 }
+            }
+
+            // 1인칭 손 메시 렌더러가 카메라 뷰 프러스텀 밖으로 나가도 애니메이션 및 렌더링이 중단되지 않도록 보장
+            var skinnedRenderers = _player.PlayerHandTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            foreach (var smr in skinnedRenderers)
+            {
+                smr.updateWhenOffscreen = true;
             }
         }
         SwayNBobScript = GetComponentInChildren<SwayNBobScript>();
@@ -53,6 +67,15 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         if (_legAnimator == null && _player != null && _player.PlayerLegTransform != null)
         {
             _legAnimator = _player.PlayerLegTransform.GetComponentInChildren<Animator>();
+            if (_legAnimator != null)
+            {
+                _legAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            }
+        }
+
+        if (_handAnimator != null)
+        {
+            _handAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         }
     }
     [Command(requiresAuthority = false)]

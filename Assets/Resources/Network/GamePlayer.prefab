@@ -1176,7 +1176,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  SwayNBobScript: {fileID: 0}
+  SwayNBobScript: {fileID: 2528041441106261233}
 --- !u!114 &455863081144415885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1225,9 +1225,14 @@ MonoBehaviour:
   PlayerInput: {fileID: 0}
   PlayerBodyTransform: {fileID: 6368314774866060621}
   PlayerHandTransform: {fileID: 6678302551413344143}
-  PlayerLegTransform: {fileID: 0}
-  Camera: {fileID: 0}
-  HandCamera: {fileID: 0}
+  FirstPersonLegsSettings:
+    spineBackwardOffset: 0.15
+    spineUpwardOffset: 0.27
+    chestBackwardOffset: 0.15
+    chestUpwardOffset: 0.15
+    upperChestBackwardOffset: -0.16
+  Camera: {fileID: 7976471606809578931}
+  HandCamera: {fileID: 5837207666424861578}
 --- !u!114 &4159627976724627172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3525,7 +3530,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   objectToLookAt: {fileID: 6326036390764491322}
   headWeight: 0
-  bodyWeight: 0.2
+  spinePitchRatio: 0.5
+  chestPitchRatio: 0.5
+  maxPitchAngle: 80
+  spineWorldStabilizeWeight: 1
 --- !u!4 &5728590349757595581 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 80e454c2c4355f64f89d8c7479184da1, type: 3}

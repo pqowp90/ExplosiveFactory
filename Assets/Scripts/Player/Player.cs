@@ -18,7 +18,12 @@ public class Player : NetworkBehaviour, IPoolable
     public PlayerInput PlayerInput;
     public Transform PlayerBodyTransform;
     public Transform PlayerHandTransform;
+    [HideInInspector]
     public Transform PlayerLegTransform;
+
+    [Header("First Person Legs Settings (프리팹 설정)")]
+    public FirstPersonLegsSettings FirstPersonLegsSettings = new FirstPersonLegsSettings();
+
     private InputController _inputController;
     public Camera Camera;
     public Camera HandCamera;
@@ -112,3 +117,24 @@ public class Player : NetworkBehaviour, IPoolable
         base.OnStartServer();
     }
 }
+
+[System.Serializable]
+public class FirstPersonLegsSettings
+{
+    [Header("Slanted Torso Offsets (상체 비스듬히 뒤로 빼기 - 회전 없음)")]
+    [Tooltip("허리 하단(Spine)을 카메라 시선 뒤쪽으로 밀어주는 거리 (단위: m, 기본 0.15m)")]
+    public float spineBackwardOffset = 0.15f;
+
+    [Tooltip("허리(Spine)를 위쪽(+Y)으로 이동시키는 거리 (단위: m, 기본 0.27m)")]
+    public float spineUpwardOffset = 0.27f;
+
+    [Tooltip("가슴 중간(Chest)을 추가로 뒤로 밀어주는 거리 (단위: m, 기본 0.15m)")]
+    public float chestBackwardOffset = 0.15f;
+
+    [Tooltip("가슴(Chest)을 위쪽(+Y)으로 이동시키는 거리 (단위: m, 기본 0.15m)")]
+    public float chestUpwardOffset = 0.15f;
+
+    [Tooltip("가슴 상단(UpperChest)을 추가로 뒤로 밀어주는 거리 (단위: m, 기본 -0.16m)")]
+    public float upperChestBackwardOffset = -0.16f;
+}
+

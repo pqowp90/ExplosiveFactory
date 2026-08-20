@@ -175,10 +175,20 @@ public class LocalPlayerSetter : NetworkBehaviour
                 }
             }
 
-            // 5. 1인칭 손 렌더러 켜기
+            // 5. 1인칭 손 렌더러 켜기 및 화면 밖 컬링 방지
             if (_player != null && _player.PlayerHandTransform != null)
             {
                 SetRenderersActive(_player.PlayerHandTransform, true);
+                var smrs = _player.PlayerHandTransform.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                foreach (var smr in smrs)
+                {
+                    smr.updateWhenOffscreen = true;
+                }
+                var handAnim = _player.PlayerHandTransform.GetComponent<Animator>();
+                if (handAnim != null)
+                {
+                    handAnim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                }
             }
 
             // 6. 1인칭 다리 렌더러 켜기 (그림자는 끄고 1인칭 카메라에만 표시)

@@ -35,11 +35,10 @@
 | `Player/Move/PlayerRotate.cs` | `PlayerRotate` | 마우스 입력을 받아 수평(좌우 몸체 회전) 및 수직(상하 카메라 피치 회전 및 클램핑) 회전을 동기화. |
 | `Player/Move/CameraShocShak.cs` | `CameraShocShak` | 플레이어 피격, 폭발, 착지 시 카메라 쉐이크 연출 처리. |
 | `Player/Move/SwayNBobScript.cs` | `SwayNBobScript` | 1인칭 시점 무기/손의 이동 밥(Bobbing) 및 마우스 회전 스웨이(Sway) 물리적 흔들림 효과 연출. |
-| `Player/Move/DrawIfAttribute.cs` | `DrawIfAttribute` | 인스펙터 필드 조건부 렌더링을 위한 커스텀 프로퍼티 애트리뷰트. |
 | `Player/PlayerAnimation/PlayerAnimation.cs` | `PlayerAnimation` | 1인칭/3인칭 애니메이터 제어 및 이동 상태(속도, 점프, 앉기) 파라미터 갱신. |
 | `Player/PlayerAnimation/IMovementAnimation.cs` | `IMovementAnimation` | 이동 애니메이션 상태 갱신을 위한 공용 인터페이스. |
 | `Player/PlayerAnimation/LookAtController.cs` | `LookAtController` | 3인칭 모델의 머리/상체가 카메라 시선 방향을 자연스럽게 바라보도록 하는 절차적 IK/LookAt 제어. |
-| `Player/PlayerAnimation/FirstPersonLegsController.cs` | `FirstPersonLegsController` | 1인칭 전용 다리(Legs) 제어 컴포넌트. 팔/머리 본을 (0,0,0)으로 축소하고 허리/상체를 뒤로 오프셋하여 1인칭 시야 간섭 없이 하체 렌더링 지원. |
+| `Player/PlayerAnimation/FirstPersonLegsController.cs` | `FirstPersonLegsController` | 1인칭 전용 다리(Legs) 제어 컴포넌트. 자식 Animator 및 본 자동 탐색, 팔/머리/목/어깨/손 본 (0,0,0) 강제 축소, 상체(Spine/Chest) 및 다리 루트 카메라 후방 오프셋/Pitch 비례 보정으로 시야 간섭 없는 완벽한 하체 렌더링 지원. |
 
 ---
 
