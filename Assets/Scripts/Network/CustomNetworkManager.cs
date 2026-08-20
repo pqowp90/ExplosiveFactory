@@ -49,7 +49,7 @@ namespace ExplosiveFactory.Network
 
         public void EnsurePrefabsLoaded()
         {
-            // 1. Auto-scan all network prefabs in Resources/Network
+            // 1. Auto-scan all network prefabs in Resources/Network via NetworkPoolManager
             var networkPrefabs = Resources.LoadAll<GameObject>("Network");
             foreach (var p in networkPrefabs)
             {
@@ -59,12 +59,9 @@ namespace ExplosiveFactory.Network
                     {
                         spawnPrefabs.Add(p);
                     }
-                    if (NetworkClient.active && !NetworkClient.prefabs.ContainsKey(p.GetComponent<NetworkIdentity>().assetId))
-                    {
-                        NetworkClient.RegisterPrefab(p);
-                    }
                 }
             }
+            NetworkPoolManager.RegisterNetworkPrefabs();
 
             // 2. Resolve LobbyPlayer & GamePlayer prefabs
             if (lobbyPlayerPrefab == null)
@@ -303,9 +300,8 @@ namespace ExplosiveFactory.Network
             var vmPrefab = Resources.Load<GameObject>("Network/ItemVendingMachine");
             if (vmPrefab != null)
             {
-                var vmObj = Instantiate(vmPrefab, new Vector3(0, 0, 3.5f), Quaternion.Euler(0, 180, 0));
-                NetworkServer.Spawn(vmObj);
-                Debug.Log("[CustomNetworkManager] Spawned network ItemVendingMachine in scene.");
+                var vmObj = NetworkPoolManager.Get(vmPrefab, new Vector3(0, 0, 3.5f), Quaternion.Euler(0, 180, 0));
+                Debug.Log("[CustomNetworkManager] Spawned network ItemVendingMachine via NetworkPoolManager in scene.");
             }
         }
 

@@ -11,7 +11,8 @@ public partial class NetworkPoolManager
     public static T Get<T>(T prefab, Transform parent = null) where T : Object
     {
         var obj = PoolManager.Get(prefab, parent);
-        NetworkServer.Spawn(GetGameObject(obj));
+        var gameObject = GetGameObject(obj);
+        NetworkServer.Spawn(gameObject);
         return obj;
     }
 
@@ -28,7 +29,8 @@ public partial class NetworkPoolManager
     public static T Get<T>(T prefab, NetworkConnectionToClient connection, Transform parent = null) where T : Object
     {
         var obj = PoolManager.Get(prefab, parent);
-        NetworkServer.Spawn(GetGameObject(obj), connection);
+        var gameObject = GetGameObject(obj);
+        NetworkServer.Spawn(gameObject, connection);
         return obj;
     }
 
@@ -37,21 +39,35 @@ public partial class NetworkPoolManager
         Transform parent = null) where T : Object
     {
         var obj = PoolManager.Get(prefab, position, rotation, parent);
-        NetworkServer.Spawn(GetGameObject(obj), connection);
+        var gameObject = GetGameObject(obj);
+        NetworkServer.Spawn(gameObject, connection);
         return obj;
     }
 
     [Server]
     public static void Release<T>(T obj) where T : Object
     {
-        GetGameObject(obj).SetActive(false);
-        Instance._releaseActions.Add(Instance._releaseIdCounter, () =>
+        if (obj == null) return;
+        var gameObject = GetGameObject(obj);
+        if (gameObject == null) return;
+
+        gameObject.SetActive(false);
+
+        if (Instance != null)
         {
-            NetworkServer.UnSpawn(GetGameObject(obj));
+            uint id = Instance._releaseIdCounter++;
+            Instance._releaseActions[id] = () =>
+            {
+                NetworkServer.UnSpawn(gameObject);
+                PoolManager.Release(obj);
+            };
+            Instance.RpcRelease(id);
+        }
+        else
+        {
+            NetworkServer.UnSpawn(gameObject);
             PoolManager.Release(obj);
-        });
-        Instance.RpcRelease(Instance._releaseIdCounter);
-        Instance._releaseIdCounter++;
+        }
     }
 
     private static GameObject GetGameObject<T>(T prefab) where T : Object
@@ -59,22 +75,29 @@ public partial class NetworkPoolManager
         return prefab as GameObject ?? (prefab as Component)?.gameObject;
     }
 
-    private static GameObject SpawnHandler(Vector3 position, uint assetId)
+    public static GameObject SpawnHandler(Vector3 position, uint assetId)
     {
         var prefab = NetWorkPrefabs.FirstOrDefault(x => x.assetId == assetId);
-        if (prefab == null) throw new NullReferenceException($"AssetId {assetId} not found");
+        if (prefab == null)
+        {
+            Debug.LogWarning($"[NetworkPoolManager] AssetId {assetId} not found in NetWorkPrefabs.");
+            return null;
+        }
 
         var o = PoolManager.Get(prefab.gameObject, position, Quaternion.identity);
         return o;
     }
 
-    private static void UnSpawnHandler(GameObject o)
+    public static void UnSpawnHandler(GameObject o)
     {
-        PoolManager.Release(o);
+        if (o != null)
+        {
+            PoolManager.Release(o);
+        }
     }
 }
 
-[SingletonLifeTime(LifeTime.Network)]
+[SingletonLifeTime(LifeTime.Application)]
 public partial class NetworkPoolManager : NetworkSingleton<NetworkPoolManager>
 {
     private readonly Dictionary<uint, Action> _releaseActions = new();
@@ -84,10 +107,24 @@ public partial class NetworkPoolManager : NetworkSingleton<NetworkPoolManager>
     protected override void Awake()
     {
         base.Awake();
+        RegisterNetworkPrefabs();
+    }
 
+    public static void RegisterNetworkPrefabs()
+    {
         NetWorkPrefabs.Clear();
-        NetWorkPrefabs.AddRange(Resources.LoadAll<NetworkIdentity>("Network"));
-        NetWorkPrefabs.ForEach(x => NetworkClient.RegisterPrefab(x.gameObject, SpawnHandler, UnSpawnHandler));
+        var allNetPrefabs = Resources.LoadAll<GameObject>("Network");
+        foreach (var p in allNetPrefabs)
+        {
+            if (p != null && p.TryGetComponent<NetworkIdentity>(out var netId))
+            {
+                NetWorkPrefabs.Add(netId);
+                if (NetworkClient.active && !NetworkClient.prefabs.ContainsKey(netId.assetId))
+                {
+                    NetworkClient.RegisterPrefab(p, SpawnHandler, UnSpawnHandler);
+                }
+            }
+        }
     }
 
     [ClientRpc]
@@ -97,18 +134,4 @@ public partial class NetworkPoolManager : NetworkSingleton<NetworkPoolManager>
         _releaseActions[releaseId].Invoke();
         _releaseActions.Remove(releaseId);
     }
-
-#if UNITY_EDITOR
-    private static void FindNetIdCommand(int netId)
-    {
-        var obj = NetworkIdentity.GetSceneIdentity((uint)netId);
-        if (obj == null)
-        {
-            return;
-        }
-
-        UnityEditor.EditorGUIUtility.PingObject(obj.gameObject);
-
-    }
-#endif
 }

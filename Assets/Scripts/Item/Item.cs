@@ -1,115 +1,187 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Mirror;
 using UnityEngine;
+
 [PrefabLabel(nameof(Item))]
+[RequireComponent(typeof(NetworkIdentity))]
 public class Item : InteractableObject, IPoolable
 {
-    [SyncVar]
+    [SyncVar(hook = nameof(OnPickedUpStateChanged))]
     private bool _isPickedUp = false;
     public bool IsPickedUp => _isPickedUp;
 
     public HandyItemObject HandyItemObjectPrefab;
-    [SyncVar]
+
+    [SerializeField]
+    private ExplosiveFactory.Item.Data.ItemData? _itemData;
+    public ExplosiveFactory.Item.Data.ItemData? ItemData
+    {
+        get => _itemData;
+        set => _itemData = value;
+    }
+
+    [SyncVar(hook = nameof(OnSyncedItemHolderChanged))]
     private ItemHolder _syncedItemHolder;
     private ItemHolder _itemHolder;
+
     [HideInInspector]
     public ItemHolder ItemHolder
     {
-        get
-        {
-            return _itemHolder ??= _syncedItemHolder;
-        }
+        get => _itemHolder ?? _syncedItemHolder;
         set
         {
+            _itemHolder = value;
             if (NetworkServer.active)
             {
                 _syncedItemHolder = value;
-                RpcSyncItemHolder(value);
             }
         }
     }
-    [ClientRpc]
-    private void RpcSyncItemHolder(ItemHolder itemHolder)
-    {
-        _itemHolder = itemHolder;
-    }
+
     [HideInInspector]
     public HandyItemObject HandyItemObject;
 
-    private void Awake()
+    private Rigidbody _rigidbody;
+    private Collider[] _colliders = Array.Empty<Collider>();
+
+    protected override void Awake()
     {
+        base.Awake();
         _rigidbody = GetComponentInChildren<Rigidbody>();
+        _colliders = GetComponentsInChildren<Collider>(true);
     }
 
     public override void OnStartClient()
     {
         base.OnStartClient();
         _itemHolder = _syncedItemHolder;
-        RendererObject.SetActive(!_isPickedUp);
+        ApplyPickupVisualAndPhysics(_isPickedUp);
     }
 
+    private void OnPickedUpStateChanged(bool oldValue, bool newValue)
+    {
+        _isPickedUp = newValue;
+        ApplyPickupVisualAndPhysics(newValue);
+    }
+
+    private void OnSyncedItemHolderChanged(ItemHolder oldValue, ItemHolder newValue)
+    {
+        _itemHolder = newValue;
+    }
+
+    private void ApplyPickupVisualAndPhysics(bool pickedUp)
+    {
+        if (RendererObject != null)
+        {
+            RendererObject.SetActive(!pickedUp);
+        }
+
+        if (_colliders != null)
+        {
+            foreach (var col in _colliders)
+            {
+                if (col != null)
+                {
+                    col.enabled = !pickedUp;
+                }
+            }
+        }
+
+        if (_rigidbody != null)
+        {
+            _rigidbody.isKinematic = pickedUp;
+            if (pickedUp)
+            {
+                _rigidbody.linearVelocity = Vector3.zero;
+                _rigidbody.angularVelocity = Vector3.zero;
+            }
+        }
+    }
 
     public void UseItem()
     {
-        RpcUseItem();
+        if (NetworkServer.active)
+        {
+            RpcUseItem();
+        }
     }
+
     [ClientRpc]
     private void RpcUseItem()
     {
         OnItemUsedEvent?.Invoke(this);
     }
-    public void DropItem(Vector3 pos, Quaternion rot)
+
+    [Server]
+    public void DropItem(Vector3 pos, Quaternion rot, Vector3? initialVelocity = null)
     {
         _isPickedUp = false;
-        SpawnItemObject(pos, rot);
+        ItemHolder = null;
+
+        transform.position = pos;
+        transform.rotation = rot;
+
+        Vector3 vel = initialVelocity ?? Vector3.zero;
+        RpcOnItemDropped(pos, rot, vel);
+        OnItemDroppedEvent?.Invoke(this);
+    }
+
+    [ClientRpc]
+    private void RpcOnItemDropped(Vector3 pos, Quaternion rot, Vector3 velocity)
+    {
+        transform.position = pos;
+        transform.rotation = rot;
+
+        if (RendererObject != null)
+        {
+            RendererObject.transform.position = pos;
+            RendererObject.transform.rotation = rot;
+        }
+
+        ApplyPickupVisualAndPhysics(false);
+
+        if (_rigidbody != null)
+        {
+            _rigidbody.isKinematic = false;
+            _rigidbody.linearVelocity = velocity;
+        }
 
         OnItemDroppedEvent?.Invoke(this);
     }
+
+    [Server]
     public void PickUpItem()
     {
         if (_isPickedUp) return;
         _isPickedUp = true;
-        DespawnItemObject();
 
+        RpcOnItemPickedUp();
         OnItemPickedUpEvent?.Invoke(this);
     }
+
+    [ClientRpc]
+    private void RpcOnItemPickedUp()
+    {
+        ApplyPickupVisualAndPhysics(true);
+        OnItemPickedUpEvent?.Invoke(this);
+    }
+
     public void OnHandyItemObjectSpawned()
     {
         OnHandyItemObjectSpawnedEvent?.Invoke(this);
     }
+
     public void OnHandyItemObjectDespawned()
     {
         OnHandyItemObjectDespawnedEvent?.Invoke(this);
     }
-    public override void OnInteract()
-    {
-        base.OnInteract();
-    }
-    private Rigidbody _rigidbody;
 
-    [ClientRpc]
-    private void SpawnItemObject(Vector3 pos, Quaternion rot)
-    {
-        transform.position = pos;
-        transform.rotation = rot;
-        RendererObject.transform.position = pos;
-        RendererObject.transform.rotation = rot;
-        _rigidbody.linearVelocity = Vector3.zero;
-
-        RendererObject.SetActive(true);
-    }
-
-    [ClientRpc]
-    private void DespawnItemObject()
-    {
-        RendererObject.SetActive(false);
-    }
     public void OnSpawned()
     {
         _isPickedUp = false;
+        ApplyPickupVisualAndPhysics(false);
     }
 
     public void OnDespawned()

@@ -10,27 +10,41 @@ public class ToggleHoldItem : ItemEventBehaviour
     {
         base.OnHandyObjectSpawn(item);
         isHolding = false;
-        item.ItemHolder.Player.PlayerAnimation.SetHoldableItem(true);
+        if (item != null && item.ItemHolder != null && item.ItemHolder.Player != null && item.ItemHolder.Player.PlayerAnimation != null)
+        {
+            item.ItemHolder.Player.PlayerAnimation.SetHoldableItem(true);
+        }
     }
+
     public override void OnHandyObjectDespawn(Item item)
     {
-        item.ItemHolder.Player.PlayerAnimation.SetHoldableItem(false);
+        if (item != null && item.ItemHolder != null && item.ItemHolder.Player != null && item.ItemHolder.Player.PlayerAnimation != null)
+        {
+            item.ItemHolder.Player.PlayerAnimation.SetHoldableItem(false);
+            if (item.ItemHolder.Player.PlayerAnimation.SwayNBobScript != null)
+            {
+                item.ItemHolder.Player.PlayerAnimation.SwayNBobScript.FixSwayNBobbing(false);
+            }
+        }
         base.OnHandyObjectDespawn(item);
-        item.ItemHolder.Player.PlayerAnimation.SwayNBobScript.FixSwayNBobbing(false);
     }
 
     public override void OnUse(Item item)
     {
         base.OnUse(item);
+        if (item == null || item.ItemHolder == null || item.ItemHolder.Player == null || item.ItemHolder.Player.PlayerAnimation == null) return;
+
         if (!isHolding)
         {
             item.ItemHolder.Player.PlayerAnimation.UseItem(0);
-            item.ItemHolder.Player.PlayerAnimation.SwayNBobScript.FixSwayNBobbing(true);
+            if (item.ItemHolder.Player.PlayerAnimation.SwayNBobScript != null)
+                item.ItemHolder.Player.PlayerAnimation.SwayNBobScript.FixSwayNBobbing(true);
         }
         else
         {
             item.ItemHolder.Player.PlayerAnimation.UseItem(1);
-            item.ItemHolder.Player.PlayerAnimation.SwayNBobScript.FixSwayNBobbing(false);
+            if (item.ItemHolder.Player.PlayerAnimation.SwayNBobScript != null)
+                item.ItemHolder.Player.PlayerAnimation.SwayNBobScript.FixSwayNBobbing(false);
         }
         isHolding = !isHolding;
     }

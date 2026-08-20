@@ -15,6 +15,7 @@ public class InputController : MonoBehaviour
     public InputAction MouseLeftClickAction;
     public InputAction MouseScrollAction;
     public InputAction InteractAction;
+    public InputAction DropAction;
 
     public bool IsInitialized = false;
 
@@ -36,9 +37,10 @@ public class InputController : MonoBehaviour
             CrouchAction = playerInput.actions.FindAction("Crouch");
             SprintAction = playerInput.actions.FindAction("Sprint") ?? playerInput.actions.FindAction("Run");
             MouseClickAction = playerInput.actions.FindAction("MouseClick");
-            MouseLeftClickAction = playerInput.actions.FindAction("MouseLeftClick");
-            MouseScrollAction = playerInput.actions.FindAction("MouseScroll");
+            MouseLeftClickAction = playerInput.actions.FindAction("MouseLeftClick") ?? playerInput.actions.FindAction("Fire") ?? playerInput.actions.FindAction("Attack");
+            MouseScrollAction = playerInput.actions.FindAction("MouseScroll") ?? playerInput.actions.FindAction("Scroll");
             InteractAction = playerInput.actions.FindAction("Interact");
+            DropAction = playerInput.actions.FindAction("Drop");
         }
     }
 

@@ -5,6 +5,21 @@
 
 ---
 
+## ⚠️ 규칙 0 — 작업 전 문서 확인 및 사전 계획 승인 (Plan First & User Approval)
+
+1. **관련 문서 및 Wiki 필수 확인:**
+   - 📌 **[폴더 및 스크립트 색인](.agents/docs/layout.md)** — 전체 스크립트 60여 개 역할 및 위치 1:1 매핑
+   - 📚 **[시스템 위키 인덱스](.agents/docs/wiki/index.md)** — [아이템](.agents/docs/wiki/item.md) · [플레이어](.agents/docs/wiki/player.md) · [네트워크](.agents/docs/wiki/network.md) 시스템 심층 가이드
+   - ⚙️ **[기술 스택 및 API 규칙](.agents/docs/stack.md)** — Unity 6, Mirror, Rigidbody linearVelocity 등
+   - 🎯 **[아이템 생성 스킬](.agents/skills/create-item/SKILL.md)** — 신규 아이템 생성 시 표준 파이프라인
+
+2. **사전 구현 계획 수립 및 사용자 확인 (필수):**
+   - 코드 수정, 기능 구현, 아키텍처 변경 전 **반드시 구현 계획(`implementation_plan.md`)을 수립하고 사용자에게 설계 의도/방식을 설명한 후 승인(Feedback)을 받아 착수**합니다.
+   - 구현 방식에 여러 대안이 있거나 모호한 점이 있을 때는 임의로 추측하여 코딩하지 않고 **사용자에게 질문하여 결정**합니다.
+   - Mirror `SyncList` 콜백 순서, `asmdef` 패키지 참조, Unity 6 직렬화 등 사이드 이펙트를 사전에 검토합니다.
+
+---
+
 ## 1. 프로젝트 개요 및 환경 (Tech Stack)
 
 - **Engine:** Unity 6 (6000.3.16f1)
@@ -90,11 +105,17 @@ Assets/
 
 ## 5. 코딩 및 에셋 작업 원칙
 
-1. **추측성 시그니처 작성 금지:**
+1. **문서 및 Wiki 실시간 동기화 (Living Documentation - 필수):**
+   - 스크립트를 추가, 삭제, 수정하거나 새로운 시스템/기능을 구현한 경우 **반드시 관련된 MD 문서도 함께 업데이트**합니다:
+     - 새 스크립트 추가/역할 변경 시: **[`.agents/docs/layout.md`](.agents/docs/layout.md)** 업데이트
+     - 시스템 구조, 파이프라인, 상태 머신 변경 시: **[`.agents/docs/wiki/`](.agents/docs/wiki/)** 내 해당 위키 문서 업데이트
+     - 기술 스택/API 정책 변경 시: **[`.agents/docs/stack.md`](.agents/docs/stack.md)** 업데이트
+   - 문서 업데이트를 누락하는 것은 코드 작성 미완료와 동일하게 취급합니다.
+2. **추측성 시그니처 작성 금지:**
    - 기존 클래스를 상속하거나 메서드를 오버라이드할 때 반드시 `view_file`로 원본 코드를 확인하고 작성합니다.
-2. **Unity 6 API 준수:**
+3. **Unity 6 API 준수:**
    - Rigidbody의 속도 설정은 `linearVelocity`를 사용합니다.
-3. **직렬화 필드 100% 매핑:**
+4. **직렬화 필드 100% 매핑:**
    - 생성하거나 수정한 프리팹의 `SerializeField` 레퍼런스(MeshFilter, MeshRenderer, Collider, Rigidbody, AudioSource 등)가 인스펙터 상에서 `Missing`이나 `None`이 되지 않도록 에셋 GUID 및 SubMesh ID를 정확하게 연결합니다.
-4. **시선 기반 Raycast 상호작용:**
+5. **시선 기반 Raycast 상호작용:**
    - 모든 오브젝트 상호작용은 카메라 시선 레이캐스트(Raycast)를 기본으로 하여 FPS 조준에 맞게 정밀하게 반응하도록 구성합니다.

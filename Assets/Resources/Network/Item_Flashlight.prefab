@@ -71,6 +71,7 @@ MonoBehaviour:
   RendererObject: {fileID: 6492661380467704964}
   HandyItemObjectPrefab: {fileID: 3986366766545128693, guid: d0989c2e98b382a49980f9c66c83bead,
     type: 3}
+  _itemData: {fileID: 11400000, guid: f1111111111111111111111111111111, type: 2}
   HandyItemObject: {fileID: 0}
 --- !u!114 &228412751084831728
 MonoBehaviour:

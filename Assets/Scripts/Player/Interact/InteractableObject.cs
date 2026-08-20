@@ -1,8 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
-using UnityEngine.UI;
 
 public interface IInteractable
 {
@@ -13,18 +13,26 @@ public interface IInteractable
 
 public class InteractableObject : NetworkBehaviour, IInteractable
 {
-    private static int _noneOutline = -1;
-    private static int _outline = -1;
-    [SerializeField] protected GameObject RendererObject;
+    [SerializeField] protected GameObject? RendererObject;
+    [SerializeField] protected Color outlineColor = new Color(1f, 0.92f, 0.016f, 1f);
+    [SerializeField] protected float outlineWidth = 2.5f;
+
+    protected Renderer[] CachedRenderers = Array.Empty<Renderer>();
 
     protected virtual void Awake()
     {
-        int itemLayer = LayerMask.NameToLayer("ItemLayer");
-        int outlineLayer = LayerMask.NameToLayer("Outline");
-        _noneOutline = itemLayer >= 0 ? itemLayer : 0;
-        _outline = outlineLayer >= 0 ? outlineLayer : _noneOutline;
         if (RendererObject == null) RendererObject = gameObject;
+        CacheRenderers();
     }
+
+    public void CacheRenderers()
+    {
+        if (RendererObject != null)
+        {
+            CachedRenderers = RendererObject.GetComponentsInChildren<Renderer>(true);
+        }
+    }
+
     public virtual void OnInteract()
     {
 
@@ -32,13 +40,20 @@ public class InteractableObject : NetworkBehaviour, IInteractable
 
     public virtual void OnNotWatch()
     {
-        if (_noneOutline >= 0)
-            RendererObject.layer = _noneOutline;
+        OutlineManager.Hide(CachedRenderers);
     }
 
     public virtual void OnWatch()
     {
-        if (_outline >= 0)
-            RendererObject.layer = _outline;
+        if (CachedRenderers.Length == 0)
+        {
+            CacheRenderers();
+        }
+        OutlineManager.Show(CachedRenderers, outlineColor, outlineWidth);
+    }
+
+    protected virtual void OnDisable()
+    {
+        OutlineManager.Hide(CachedRenderers);
     }
 }

@@ -15,14 +15,14 @@ namespace ExplosiveFactory.Editor.Toolbar
 
         public static string PlayerPrefabPath
         {
-            get => EditorPrefs.GetString(PrefKey_PlayerPrefabPath, "Assets/Prefabs/Player.prefab");
+            get => EditorPrefs.GetString(PrefKey_PlayerPrefabPath, "Assets/Resources/Network/GamePlayer.prefab");
             set => EditorPrefs.SetString(PrefKey_PlayerPrefabPath, value);
         }
 
         [MainToolbarElement(ElementId, defaultDockPosition = MainToolbarDockPosition.Left)]
         public static MainToolbarElement CreatePlayerPrefabButton()
         {
-            var content = new MainToolbarContent("👤 Player Prefab", "클릭하여 플레이어 프리팹을 즉시 열고 편집 모드로 진입합니다.");
+            var content = new MainToolbarContent("👤 Player Prefab", "클릭하여 게임 플레이어 프리팹(GamePlayer.prefab)을 즉시 열고 편집 모드로 진입합니다.");
             return new MainToolbarButton(content, OpenPlayerPrefab);
         }
 
@@ -30,10 +30,15 @@ namespace ExplosiveFactory.Editor.Toolbar
         {
             string path = PlayerPrefabPath;
 
-            // 경로에 파일이 없는 경우 프로젝트 내에서 플레이어 프리팹 자동 탐색
+            // 경로에 파일이 없는 경우 프로젝트 내에서 GamePlayer 또는 Player 프리팹 자동 탐색
             if (!File.Exists(path))
             {
-                string[] guids = AssetDatabase.FindAssets("Player t:Prefab");
+                string[] guids = AssetDatabase.FindAssets("GamePlayer t:Prefab");
+                if (guids.Length == 0)
+                {
+                    guids = AssetDatabase.FindAssets("Player t:Prefab");
+                }
+
                 if (guids.Length > 0)
                 {
                     path = AssetDatabase.GUIDToAssetPath(guids[0]);
@@ -43,7 +48,7 @@ namespace ExplosiveFactory.Editor.Toolbar
 
             if (!File.Exists(path))
             {
-                Debug.LogWarning($"[Toolbar] 플레이어 프리팹을 찾을 수 없습니다: {path}\nAssets/Prefabs/Player.prefab을 생성하거나 경로를 확인해주세요.");
+                Debug.LogWarning($"[Toolbar] 플레이어 프리팹을 찾을 수 없습니다: {path}\nAssets/Resources/Network/GamePlayer.prefab을 확인해주세요.");
                 
                 // 프리팹 선택창 제공
                 string selected = EditorUtility.OpenFilePanel("플레이어 프리팹 선택", Application.dataPath, "prefab");

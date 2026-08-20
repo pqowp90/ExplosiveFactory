@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Mirror;
 using TMPro;
@@ -120,8 +120,7 @@ public class ItemVendingMachine : InteractableObject
         Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : transform.position + transform.forward * 0.8f + Vector3.up * 0.5f;
         Quaternion spawnRot = Quaternion.identity;
 
-        var obj = Instantiate(prefab, spawnPos, spawnRot);
-        NetworkServer.Spawn(obj);
+        var obj = NetworkPoolManager.Get(prefab, spawnPos, spawnRot);
 
         var rb = obj.GetComponentInChildren<Rigidbody>();
         if (rb != null)

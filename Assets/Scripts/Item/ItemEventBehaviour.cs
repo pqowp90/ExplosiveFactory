@@ -19,12 +19,21 @@ public class ItemEventBehaviour : MonoBehaviour
 
     public virtual void OnHandyObjectSpawn(Item item)
     {
-        Player = item.ItemHolder.Player;
+        if (item != null && item.ItemHolder != null)
+        {
+            Player = item.ItemHolder.Player;
+        }
+        if (Player == null)
+        {
+            Player = GetComponentInParent<Player>();
+        }
     }
     public virtual void OnHandyObjectDespawn(Item item)
     {
-        if (Player == null)
+        if (Player == null && item != null && item.ItemHolder != null)
             Player = item.ItemHolder.Player;
+        if (Player == null)
+            Player = GetComponentInParent<Player>();
     }
     public virtual void OnPickup(Item item)
     {

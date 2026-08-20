@@ -10,7 +10,9 @@
         "Unity.InputSystem",
         "UnityEngine.UI",
         "LitMotion",
-        "DOTween.Modules"
+        "DOTween.Modules",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
