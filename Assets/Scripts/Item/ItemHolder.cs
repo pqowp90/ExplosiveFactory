@@ -28,12 +28,9 @@ public class ItemHolder : NetworkBehaviour
     private Player _player;
     public Player Player => _player ??= GetComponent<Player>();
 
-    [SyncVar(hook = nameof(OnCurrentHandyItemIndexChanged))]
     private int _currentHandyItemIndex = 0;
+    private readonly List<Item?> _holdingItems = new();
 
-    public readonly SyncList<Item> _holdingItems = new();
-
-    private float _mouseScroll;
     private HandyItemObject _currentHandyItemObject;
     public HandyItemObject CurrentHandyItemObject => _currentHandyItemObject;
 
@@ -44,6 +41,7 @@ public class ItemHolder : NetworkBehaviour
             _itemDropPoint = transform;
 
         GetHandyTransformByHandyType();
+        EnsureHoldingItemsCapacity();
     }
 
     public override void OnStartServer()
@@ -59,17 +57,12 @@ public class ItemHolder : NetworkBehaviour
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
-        if (_player != null && _player.InputController != null && _player.InputController.MouseScrollAction != null)
-        {
-            _player.InputController.MouseScrollAction.performed += ctx => _mouseScroll = ctx.ReadValue<float>();
-            _player.InputController.MouseScrollAction.Enable();
-        }
     }
 
     public override void OnStartClient()
     {
         base.OnStartClient();
-        _holdingItems.Callback += OnHoldingItemsChanged;
+        EnsureHoldingItemsCapacity();
         UpdateHandyObject();
     }
 
@@ -86,52 +79,29 @@ public class ItemHolder : NetworkBehaviour
         return null;
     }
 
-    private void OnHoldingItemsChanged(SyncList<Item>.Operation op, int index, Item oldItem, Item newItem)
-    {
-        if (newItem != null)
-        {
-            newItem.ItemHolder = this;
-        }
-
-        if (index == _currentHandyItemIndex)
-        {
-            UpdateHandyObject();
-        }
-
-        OnSlotItemChanged?.Invoke(index, newItem);
-        OnAllSlotsUpdated?.Invoke();
-    }
-
-    private void OnCurrentHandyItemIndexChanged(int oldIndex, int newIndex)
-    {
-        _currentHandyItemIndex = newIndex;
-        UpdateHandyObject();
-        OnCurrentSlotChanged?.Invoke(newIndex);
-    }
-
     private void Update()
     {
-        if (!isLocalPlayer) return;
+        if (!isLocalPlayer || _player == null || _player.InputController == null) return;
 
         // 슬롯 변경 (마우스 휠 스크롤)
-        if (CursorManager.Instance == null || CursorManager.Instance.CurrentCursor == CursorType.Player)
+        float scroll = _player.InputController.ScrollValue;
+        if (scroll > 0.01f && _currentHandyItemIndex > 0)
         {
-            if (_mouseScroll > 0.01f)
-            {
-                CmdChangeHandyItemIndex(-1);
-                _mouseScroll = 0f;
-            }
-            else if (_mouseScroll < -0.01f)
-            {
-                CmdChangeHandyItemIndex(1);
-                _mouseScroll = 0f;
-            }
+            CmdChangeHandyItemIndex(-1);
+        }
+        else if (scroll < -0.01f && _currentHandyItemIndex < _maxHandyItemIndex - 1)
+        {
+            CmdChangeHandyItemIndex(1);
         }
 
-        // 아이템 사용 (좌클릭)
-        if (_player != null && _player.InputController != null && _player.InputController.MouseLeftClickAction != null)
+        // 아이템 사용 (우클릭 - 게임플레이 모드 또는 스마트폰 UI 뒤로가기)
+        if (_player.InputController.IsUseSecondaryTriggered)
         {
-            if (_player.InputController.MouseLeftClickAction.triggered)
+            CmdUseItem();
+        }
+        else if (CursorManager.Instance != null && CursorManager.Instance.CurrentCursor == CursorType.UI)
+        {
+            if (_player.InputController.IsRawSecondaryClickTriggered)
             {
                 CmdUseItem();
             }
@@ -143,10 +113,24 @@ public class ItemHolder : NetworkBehaviour
     {
         if (_maxHandyItemIndex <= 0) return;
 
-        int newIndex = (_currentHandyItemIndex + delta) % _maxHandyItemIndex;
-        if (newIndex < 0) newIndex += _maxHandyItemIndex;
+        int newIndex = Mathf.Clamp(_currentHandyItemIndex + delta, 0, _maxHandyItemIndex - 1);
+        if (newIndex == _currentHandyItemIndex) return;
 
-        CurrentHandyItemIndex = newIndex;
+        _currentHandyItemIndex = newIndex;
+        RpcSetHandyItemIndex(newIndex);
+    }
+
+    [ClientRpc]
+    private void RpcSetHandyItemIndex(int newIndex)
+    {
+        _currentHandyItemIndex = newIndex;
+        UpdateHandyObject();
+        OnCurrentSlotChanged?.Invoke(newIndex);
+
+        if (_player != null && _player.PlayerAnimation != null)
+        {
+            _player.PlayerAnimation.SetHoldingItem(HoldingItem != null);
+        }
     }
 
     [Command(requiresAuthority = false)]
@@ -167,15 +151,11 @@ public class ItemHolder : NetworkBehaviour
             if (value < 0 || value >= _maxHandyItemIndex) return;
 
             _currentHandyItemIndex = value;
-            UpdateHandyObject();
-            if (_player != null && _player.PlayerAnimation != null)
-            {
-                _player.PlayerAnimation.SetHoldingItem(HoldingItem != null);
-            }
+            RpcSetHandyItemIndex(value);
         }
     }
 
-    public Item HoldingItem
+    public Item? HoldingItem
     {
         get
         {
@@ -188,31 +168,59 @@ public class ItemHolder : NetworkBehaviour
         set
         {
             if (!NetworkServer.active) return;
-            EnsureHoldingItemsCapacity();
+            SetSlotItemOnServer(_currentHandyItemIndex, value);
+        }
+    }
 
-            var oldItem = HoldingItem;
-            if (oldItem != null && oldItem != value)
-            {
-                Vector3 dropPos = _itemDropPoint != null ? _itemDropPoint.position : transform.position + transform.forward * 0.5f + Vector3.up * 0.5f;
-                Quaternion dropRot = _itemDropPoint != null ? _itemDropPoint.rotation : transform.rotation;
-                Vector3 dropVel = transform.forward * 2f + Vector3.up * 1f;
-                oldItem.DropItem(dropPos, dropRot, dropVel);
-            }
+    [Server]
+    private void SetSlotItemOnServer(int slotIndex, Item? newItem)
+    {
+        EnsureHoldingItemsCapacity();
+        if (slotIndex < 0 || slotIndex >= _maxHandyItemIndex) return;
 
-            if (value != null)
-            {
-                value.ItemHolder = this;
-                value.PickUpItem();
-            }
+        var oldItem = _holdingItems[slotIndex];
+        if (oldItem != null && oldItem != newItem)
+        {
+            Vector3 dropPos = _itemDropPoint != null ? _itemDropPoint.position : transform.position + transform.forward * 0.5f + Vector3.up * 0.5f;
+            Quaternion dropRot = _itemDropPoint != null ? _itemDropPoint.rotation : transform.rotation;
+            Vector3 dropVel = transform.forward * 2f + Vector3.up * 1f;
+            oldItem.DropItem(dropPos, dropRot, dropVel);
+        }
 
-            _holdingItems[_currentHandyItemIndex] = value;
+        _holdingItems[slotIndex] = newItem;
 
+        if (newItem != null)
+        {
+            newItem.ItemHolder = this;
+            newItem.PickUpItem(this);
+        }
+
+        RpcSetSlotItem(slotIndex, newItem);
+    }
+
+    [ClientRpc]
+    private void RpcSetSlotItem(int slotIndex, Item? newItem)
+    {
+        EnsureHoldingItemsCapacity();
+        if (slotIndex < 0 || slotIndex >= _holdingItems.Count) return;
+
+        _holdingItems[slotIndex] = newItem;
+        if (newItem != null)
+        {
+            newItem.ItemHolder = this;
+        }
+
+        if (slotIndex == _currentHandyItemIndex)
+        {
             UpdateHandyObject();
             if (_player != null && _player.PlayerAnimation != null)
             {
-                _player.PlayerAnimation.SetHoldingItem(value != null);
+                _player.PlayerAnimation.SetHoldingItem(newItem != null);
             }
         }
+
+        OnSlotItemChanged?.Invoke(slotIndex, newItem);
+        OnAllSlotsUpdated?.Invoke();
     }
 
     private void EnsureHoldingItemsCapacity()
@@ -226,31 +234,15 @@ public class ItemHolder : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void DropItem()
     {
-        var currentItem = HoldingItem;
-        if (currentItem == null) return;
-
-        EnsureHoldingItemsCapacity();
-        _holdingItems[_currentHandyItemIndex] = null;
-
-        Vector3 dropPos = _itemDropPoint != null ? _itemDropPoint.position : transform.position + transform.forward * 0.5f + Vector3.up * 0.5f;
-        Quaternion dropRot = _itemDropPoint != null ? _itemDropPoint.rotation : transform.rotation;
-        Vector3 dropVel = transform.forward * 2f + Vector3.up * 1f;
-
-        currentItem.DropItem(dropPos, dropRot, dropVel);
-
-        UpdateHandyObject();
-        if (_player != null && _player.PlayerAnimation != null)
-        {
-            _player.PlayerAnimation.SetHoldingItem(false);
-        }
+        if (HoldingItem == null) return;
+        SetSlotItemOnServer(_currentHandyItemIndex, null);
     }
 
     [Command(requiresAuthority = false)]
     public void PickUpItem(Item item)
     {
         if (item == null || item.IsPickedUp) return;
-
-        HoldingItem = item;
+        SetSlotItemOnServer(_currentHandyItemIndex, item);
     }
 
     private void UpdateHandyObject()

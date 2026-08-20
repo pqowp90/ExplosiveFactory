@@ -8,7 +8,6 @@ using UnityEngine;
 [RequireComponent(typeof(NetworkIdentity))]
 public class Item : InteractableObject, IPoolable
 {
-    [SyncVar(hook = nameof(OnPickedUpStateChanged))]
     private bool _isPickedUp = false;
     public bool IsPickedUp => _isPickedUp;
 
@@ -22,22 +21,12 @@ public class Item : InteractableObject, IPoolable
         set => _itemData = value;
     }
 
-    [SyncVar(hook = nameof(OnSyncedItemHolderChanged))]
-    private ItemHolder _syncedItemHolder;
-    private ItemHolder _itemHolder;
-
+    private ItemHolder? _itemHolder;
     [HideInInspector]
-    public ItemHolder ItemHolder
+    public ItemHolder? ItemHolder
     {
-        get => _itemHolder ?? _syncedItemHolder;
-        set
-        {
-            _itemHolder = value;
-            if (NetworkServer.active)
-            {
-                _syncedItemHolder = value;
-            }
-        }
+        get => _itemHolder;
+        set => _itemHolder = value;
     }
 
     [HideInInspector]
@@ -56,19 +45,7 @@ public class Item : InteractableObject, IPoolable
     public override void OnStartClient()
     {
         base.OnStartClient();
-        _itemHolder = _syncedItemHolder;
         ApplyPickupVisualAndPhysics(_isPickedUp);
-    }
-
-    private void OnPickedUpStateChanged(bool oldValue, bool newValue)
-    {
-        _isPickedUp = newValue;
-        ApplyPickupVisualAndPhysics(newValue);
-    }
-
-    private void OnSyncedItemHolderChanged(ItemHolder oldValue, ItemHolder newValue)
-    {
-        _itemHolder = newValue;
     }
 
     private void ApplyPickupVisualAndPhysics(bool pickedUp)
@@ -131,6 +108,9 @@ public class Item : InteractableObject, IPoolable
     [ClientRpc]
     private void RpcOnItemDropped(Vector3 pos, Quaternion rot, Vector3 velocity)
     {
+        _isPickedUp = false;
+        ItemHolder = null;
+
         transform.position = pos;
         transform.rotation = rot;
 
@@ -152,10 +132,11 @@ public class Item : InteractableObject, IPoolable
     }
 
     [Server]
-    public void PickUpItem()
+    public void PickUpItem(ItemHolder? holder = null)
     {
         if (_isPickedUp) return;
         _isPickedUp = true;
+        ItemHolder = holder;
 
         RpcOnItemPickedUp();
         OnItemPickedUpEvent?.Invoke(this);
@@ -164,6 +145,7 @@ public class Item : InteractableObject, IPoolable
     [ClientRpc]
     private void RpcOnItemPickedUp()
     {
+        _isPickedUp = true;
         ApplyPickupVisualAndPhysics(true);
         OnItemPickedUpEvent?.Invoke(this);
     }

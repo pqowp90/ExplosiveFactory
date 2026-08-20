@@ -256,7 +256,6 @@ namespace ExplosiveFactory.Network
             }
             else if (currentScene == gameSceneName)
             {
-                SpawnSceneVendingMachine();
                 SpawnGamePlayer(conn);
             }
         }
@@ -266,27 +265,9 @@ namespace ExplosiveFactory.Network
             base.OnServerSceneChanged(sceneName);
             EnsurePrefabsLoaded();
 
-            if (sceneName == lobbySceneName)
-            {
-                foreach (var conn in NetworkServer.connections.Values)
-                {
-                    if (conn != null && conn.isReady)
-                    {
-                        SpawnLobbyPlayer(conn);
-                    }
-                }
-            }
-            else if (sceneName == gameSceneName)
+            if (sceneName == gameSceneName)
             {
                 SpawnSceneVendingMachine();
-
-                foreach (var conn in NetworkServer.connections.Values)
-                {
-                    if (conn != null && conn.isReady)
-                    {
-                        SpawnGamePlayer(conn);
-                    }
-                }
             }
         }
 
@@ -314,18 +295,13 @@ namespace ExplosiveFactory.Network
                 return;
             }
 
-            GameObject lobbyObj;
-            if (lobbyPlayerPrefab != null)
+            if (lobbyPlayerPrefab == null)
             {
-                lobbyObj = Instantiate(lobbyPlayerPrefab);
-            }
-            else
-            {
-                lobbyObj = new GameObject("LobbyPlayer");
-                lobbyObj.AddComponent<NetworkIdentity>();
-                lobbyObj.AddComponent<LobbyPlayer>();
+                Debug.LogError("[CustomNetworkManager] lobbyPlayerPrefab is null! Cannot spawn LobbyPlayer.");
+                return;
             }
 
+            GameObject lobbyObj = Instantiate(lobbyPlayerPrefab);
             lobbyObj.name = $"LobbyPlayer [connId={conn.connectionId}]";
 
             if (conn.identity == null)
@@ -353,6 +329,12 @@ namespace ExplosiveFactory.Network
                 return;
             }
 
+            if (gamePlayerPrefab == null)
+            {
+                Debug.LogError("[CustomNetworkManager] gamePlayerPrefab is null! Cannot spawn GamePlayer.");
+                return;
+            }
+
             string pName = "Player";
             ulong sId = 0;
             if (conn.identity != null && conn.identity.TryGetComponent<LobbyPlayer>(out var lobbyPlayer))
@@ -362,29 +344,9 @@ namespace ExplosiveFactory.Network
             }
 
             Transform spawnPos = GetStartPosition();
-            GameObject gamePlayer;
-
-            if (gamePlayerPrefab != null)
-            {
-                gamePlayer = spawnPos != null
-                    ? Instantiate(gamePlayerPrefab, spawnPos.position, spawnPos.rotation)
-                    : Instantiate(gamePlayerPrefab);
-            }
-            else
-            {
-                // Fallback Dynamic Runtime GamePlayer (3D)
-                gamePlayer = new GameObject($"GamePlayer_{pName}");
-                if (spawnPos != null) gamePlayer.transform.position = spawnPos.position;
-
-                var cc = gamePlayer.AddComponent<CharacterController>();
-                cc.height = 1.8f;
-                cc.radius = 0.35f;
-                cc.center = new Vector3(0f, 0.9f, 0f);
-
-                gamePlayer.AddComponent<NetworkIdentity>();
-                gamePlayer.AddComponent<NetworkTransformReliable>();
-                gamePlayer.AddComponent<GamePlayer>();
-            }
+            GameObject gamePlayer = spawnPos != null
+                ? Instantiate(gamePlayerPrefab, spawnPos.position, spawnPos.rotation)
+                : Instantiate(gamePlayerPrefab);
 
             gamePlayer.name = $"GamePlayer_{pName} [connId={conn.connectionId}]";
 

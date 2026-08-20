@@ -19,8 +19,12 @@ public class FlashLightHandyItemObject : HandyItemObject
         _isOn = false;
         OnOffFlashLight();
     }
+
     private void OnOffFlashLight()
     {
-        _light.gameObject.SetActive(_isOn);
+        if (_light != null)
+        {
+            _light.gameObject.SetActive(_isOn);
+        }
     }
 }
