@@ -169,50 +169,6 @@ public class LocalPlayerSetter : NetworkBehaviour
             {
                 SetRenderersShadowOnly(_player.PlayerBodyTransform, true);
             }
-
-            // 7. 인벤토리 HUD UI 연동
-            if (_player != null && _player.ItemHolder != null)
-            {
-                var invUI = FindFirstObjectByType<ExplosiveFactory.UI.InventoryUI>() ?? CreateDefaultInventoryHUD();
-                if (invUI != null)
-                {
-                    invUI.Bind(_player.ItemHolder);
-                }
-            }
         }
-    }
-
-    private ExplosiveFactory.UI.InventoryUI CreateDefaultInventoryHUD()
-    {
-        var canvasObj = new GameObject("InventoryHUDCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        var canvas = canvasObj.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 50;
-
-        var scaler = canvasObj.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        scaler.matchWidthOrHeight = 0.5f;
-
-        var containerObj = new GameObject("SlotsContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        containerObj.transform.SetParent(canvasObj.transform, false);
-
-        var rect = containerObj.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0f);
-        rect.anchorMax = new Vector2(0.5f, 0f);
-        rect.pivot = new Vector2(0.5f, 0f);
-        rect.anchoredPosition = new Vector2(0f, 35f);
-        rect.sizeDelta = new Vector2(400f, 110f);
-
-        var layout = containerObj.GetComponent<HorizontalLayoutGroup>();
-        layout.spacing = 16f;
-        layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childControlWidth = false;
-        layout.childControlHeight = false;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
-
-        var invUI = canvasObj.AddComponent<ExplosiveFactory.UI.InventoryUI>();
-        return invUI;
     }
 }
