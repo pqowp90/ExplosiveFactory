@@ -211,8 +211,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &4270030757345117402
-CapsuleCollider:
+--- !u!65 &4270030757345117402
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -229,11 +229,9 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 1
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.04685644
-  m_Height: 0.23057182
-  m_Direction: 1
-  m_Center: {x: -0.000000020489098, y: 0, z: 0}
+  serializedVersion: 3
+  m_Size: {x: 0.0937, y: 0.23057, z: 0.0937}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &1181551638400185674
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -244,7 +242,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}

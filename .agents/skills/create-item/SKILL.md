@@ -24,7 +24,7 @@ description: ExplosiveFactory 프로젝트에서 새로운 인터랙션 아이�
   - `NetworkIdentity`
   - `NetworkTransformReliable`
   - `Rigidbody` (Interpolate: Interpolate, Collision Detection: Continuous 권장)
-  - `Collider` (상호작용용)
+  - `Collider` (바닥에 굴러다니는 것을 방지하기 위해 CapsuleCollider 대신 BoxCollider 권장)
   - `{ItemName}Item` (구현 스크립트 연결)
 
 ### 4단계: 자판기/스폰 매니저 등록 확인
