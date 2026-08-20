@@ -226,6 +226,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         if (_handAnimator != null) _handAnimator.SetBool(IMovementAnimation.Sprint, sprint);
     }
     private bool _isHoldingItem = false;
+    public bool IsHoldingItem => _isHoldingItem;
     public void SetHoldingItem(bool holdingItem)
     {
         _isHoldingItem = holdingItem;

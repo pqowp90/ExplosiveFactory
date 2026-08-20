@@ -326,6 +326,15 @@ public class ItemHolder : NetworkBehaviour
                 child.gameObject.layer = layer;
             }
         }
+
+        var renderers = target.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in renderers)
+        {
+            if (r != null)
+            {
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
     }
 
     private void GetHandyTransformByHandyType()

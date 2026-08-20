@@ -543,7 +543,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2463907881593342027}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5400a58ce094904198ae06f2ded1df5, type: 3}
+  m_Script: {fileID: 11500000, guid: 68975e6f58c480a4d8fed7b4845d87b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   realCamera: {fileID: 8024008230863296441}
@@ -1120,52 +1120,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6678302551413344143}
   m_LocalEulerAnglesHint: {x: -7.3217444, y: 1.862691, z: 111.07065}
---- !u!1 &5512628046465702879
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7603559713722491796}
-  - component: {fileID: 9114300220213542065}
-  m_Layer: 0
-  m_Name: Rig 1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7603559713722491796
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5512628046465702879}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5728590349757595581}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9114300220213542065
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5512628046465702879}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70b342d8ce5c2fd48b8fa3147d48d1d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Weight: 1
-  m_Effectors: []
 --- !u!1 &5816903835115368575
 GameObject:
   m_ObjectHideFlags: 0
@@ -3676,11 +3630,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 80e454c2c4355f64f89d8c7479184da1,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7603559713722491796}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 80e454c2c4355f64f89d8c7479184da1,
         type: 3}

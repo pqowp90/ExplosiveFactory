@@ -37,10 +37,28 @@ public class HandyItemObject : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        DisableShadowCasting();
+    }
+
     public virtual void OnSpawned(Player player)
     {
         _player = player;
+        DisableShadowCasting();
         _onHandyItemObjectSpawnedEvent?.Invoke(player);
+    }
+
+    public void DisableShadowCasting()
+    {
+        var renderers = GetComponentsInChildren<Renderer>(true);
+        foreach (var r in renderers)
+        {
+            if (r != null)
+            {
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
     }
 
     public virtual void OnAnimationTriggerEvent(int triggerID)
