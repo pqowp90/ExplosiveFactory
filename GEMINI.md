@@ -33,3 +33,8 @@
    - `마우스 휠`: 인벤토리 슬롯 전환
 7. **문서 및 Wiki 동기화 (Living Documentation):**
    - 스크립트 추가/수정 또는 시스템 변경 시 반드시 [layout.md](file:///x:/Github/ExplosiveFactory/.agents/docs/layout.md) 및 [wiki/](file:///x:/Github/ExplosiveFactory/.agents/docs/wiki/) 문서를 함께 업데이트해야 합니다.
+8. **🚨 철저한 사전 검증 및 안일한 코딩 금지:**
+   - UI 모드와 인게임 입력 교차 상태를 사전에 완벽히 추적하여 조작 먹통 방지
+   - Input System 컨트롤 타입(`float`, `Vector2`) 안전 처리로 런타임 예외 원천 차단
+   - 아이템별 좌클릭(기능)과 우클릭(UI/보조)의 명확한 역할 분리 준수
+   - 실시간 상호작용 시 SyncVar 지양 및 명시적 Command/ClientRpc 즉시 동기화 파이프라인 적용

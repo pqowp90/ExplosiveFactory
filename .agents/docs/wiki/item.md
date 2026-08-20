@@ -8,16 +8,16 @@
 
 ```mermaid
 graph TD
-    ItemSo["ItemSo (ScriptableObject)\n- 데이터 메타정보, 무게, 오프셋, 손 애니 오버라이드"]
+    ItemData["ItemData (ScriptableObject)\n- 데이터 메타정보, 가격, 무게, 오프셋, 손 애니 오버라이드"]
     Item["Item (NetworkBehaviour)\n- 물리 및 네트워크 상태 동기화"]
     ItemHolder["ItemHolder (Player 부착)\n- 인벤토리 슬롯 관리, 줍기/버리기/던지기"]
     ItemVendingMachine["ItemVendingMachine (NetworkBehaviour)\n- 상점/자판기 배출기"]
-    ItemManager["ItemManager (NetworkSingleton)\n- 서버 측 아이템 스폰/풀링/관리"]
+    ItemDataManager["ItemDataManager (MonoSingleton)\n- ItemData Resources 로드 및 ID 조회"]
 
-    ItemSo --> Item
+    ItemData --> Item
     Item --> ItemHolder
-    ItemVendingMachine --> ItemManager
-    ItemManager --> Item
+    ItemVendingMachine --> Item
+    ItemDataManager --> ItemData
 ```
 
 ---
@@ -28,18 +28,18 @@ graph TD
 
 1. **`Grounded` (바닥에 놓인 상태):**
    - 물리(`Rigidbody`, `isKinematic = false`) 및 모든 자식 콜라이더(`Collider`) 활성화.
-   - Mirror의 `[SyncVar]` (`_isPickedUp = false`) 훅에 의해 렌더러와 물리 상태가 모든 클라이언트에 자동 동기화됨.
-   - 플레이어의 `InteractiveRaycast`에 감지되어 `F` 키로 주울 수 있음 (`PickUpItem`).
+   - `RpcOnItemDropped`를 통해 렌더러 활성화 및 물리 속도(`linearVelocity`)가 즉각 적용되어 동기화됨.
+   - 플레이어의 `InteractiveRaycast`에 감지되어 `F` 키로 주울 수 있음 (`CmdPickUpItem`).
 
 2. **`Held` / `Inventory` (인벤토리 슬롯 및 손에 쥐어진 상태):**
-   - `[SyncVar]` (`_isPickedUp = true`) 훅을 통해 렌더러 숨김 및 **모든 자식 콜라이더 비활성화**, `Rigidbody.isKinematic = true`.
+   - `RpcOnItemPickedUp`을 통해 렌더러 숨김 및 **모든 자식 콜라이더 비활성화**, `Rigidbody.isKinematic = true`.
    - 바닥에 투명 충돌체가 남아 시야 레이캐스트나 플레이어 이동을 가로막는 버그를 원천 차단.
-   - `ItemHolder`의 `SyncList<Item>` 및 `[SyncVar] _currentHandyItemIndex`를 통해 모든 클라이언트(Late-Joiner 포함)에 슬롯 및 파지 상태 동기화.
+   - `ItemHolder`의 `RpcSetSlotItem` 및 `RpcSetHandyItemIndex`를 통해 지연 없는 즉시 슬롯 교체 및 파지 상태 동기화 (SyncVar 미사용, 순서 보장).
    - 활성 슬롯의 아이템에 맞춰 로컬 `PoolManager`에서 1인칭 손 / 3인칭 몸통 소켓(`HandyItemObject`)을 생성하고 오버라이드 애니메이터 적용.
 
 3. **`Thrown` / `Dropped` (버려지거나 던져진 상태):**
    - 손 소켓의 `HandyItemObject`를 풀로 안전하게 반환.
-   - 서버에서 `DropItem(pos, rot, velocity)` 호출 ➔ `RpcOnItemDropped`를 통해 전방 추진력(`linearVelocity`) 부여 및 물리/콜라이더 복구.
+   - 서버에서 `DropItem(pos, rot, velocity)` 호출 ➔ `RpcOnItemDropped`를 통해 전방 추진력(`linearVelocity`) 부여 및 물리/콜라이더 즉각 복구.
    - `NetworkPoolManager.Release` 시 Mirror의 `UnSpawnHandler`를 거쳐 풀로 회수.
 
 ---

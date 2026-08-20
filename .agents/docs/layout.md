@@ -13,7 +13,7 @@
 | `Mirror/` | Mirror 네트워킹 핵심 라이브러리 및 트랜스포트 |
 | `Prefabs/` | 일반 프리팹 (PlayerEntry 등 UI/비네트워크 프리팹) |
 | `Resources/` | 런타임 동적 로드 에셋 (`Resources.Load`) |
-| `Resources/ItemData/` | `ItemSo` 기반 아이템 ScriptableObject 데이터 에셋 |
+| `Resources/ItemData/` | `ItemData` 기반 아이템 ScriptableObject 데이터 에셋 |
 | `Resources/Network/` | **[필수]** `NetworkServer.Spawn`되는 모든 네트워크 동기화 프리팹 |
 | `Scenes/` | 메인 씬 (`MainMenuScene`, `LobbyScene`, `GameScene`) |
 | `Scripts/` | 게임 로직 C# 소스 코드 (`ExplosiveFactory.Scripts.asmdef`) |
@@ -47,16 +47,16 @@
 | 스크립트 경로 | 클래스명 | 역할 및 핵심 기능 |
 |---|---|---|
 | `Item/Item.cs` | `Item` | 네트워크 상에 존재하는 모든 아이템의 기본 베이스 클래스 (`NetworkBehaviour`). 바닥 상태(`Grounded`), 파지 상태(`Held`), 투척 상태(`Thrown`) 라이프사이클 관리. |
-| `Item/ItemHolder.cs` | `ItemHolder` | 플레이어가 보유한 인벤토리 슬롯 및 현재 손에 쥔 아이템을 관리. 아이템 줍기(`Pickup`), 버리기(`Drop`), 던지기(`Throw`), 슬롯 변경 처리. |
-| `Item/ItemManager.cs` | `ItemManager` | 서버 전용 아이템 스폰/풀링/디스폰 총괄 관리 싱글톤 (`NetworkSingleton`). |
-| `Item/ItemVendingMachine.cs` | `ItemVendingMachine` | 인게임 아이템 구매/뽑기 자판기 오브젝트. 서버에서 인터랙션 요청을 검증하고 `ItemManager`를 통해 아이템 배출. |
+| `Item/ItemHolder.cs` | `ItemHolder` | 플레이어가 보유한 3개 인벤토리 슬롯 및 손에 쥔 아이템을 관리. 마우스 휠 슬롯 전환, 우클릭 아이템 사용, `F` 줍기, `G` 버리기 처리. |
+| `Item/ItemManager.cs` | `ItemDataManager` | `Resources/ItemData/` 경로의 `ItemData` 에셋을 로드하고 관리하는 싱글톤 (`MonoSingleton<ItemDataManager>`). ID 기반 아이템 메타데이터 조회 지원. |
+| `Item/ItemVendingMachine.cs` | `ItemVendingMachine` | 인게임 아이템 구매/뽑기 자판기 오브젝트. 서버에서 인터랙션 요청을 검증하고 `NetworkPoolManager`를 통해 아이템 배출. |
 | `Item/ItemEventBehaviour.cs` | `ItemEventBehaviour` | 아이템의 주움, 버림, 사용 이벤트에 반응하는 베이스 컴포넌트. |
 | `Item/HandyItemObject.cs` | `HandyItemObject` | 손에 쥐었을 때 특정 기능을 발동하는 기능성 핸디 아이템의 기본 클래스. |
-| `Item/HandyItem/FlashLightHandyItemObject.cs` | `FlashLightHandyItemObject` | 손전등 아이템 구현체. 마우스 좌클릭 시 스팟라이트 On/Off 토글 및 동기화. |
+| `Item/HandyItem/FlashLightHandyItemObject.cs` | `FlashLightHandyItemObject` | 손전등 아이템 구현체. 마우스 우클릭 시 손 애니메이션 및 `OnAnimationTriggerEvent(0)`를 통해 스팟라이트 On/Off 토글. |
 | `Item/ToggleHoldItem/ToggleHoldItem.cs` | `ToggleHoldItem` | 들고 있을 때 모드 전환이나 상태 토글이 가능한 아이템 베이스. |
 | `Item/ToggleHoldItem/PhoneItem/PhoneItem.cs` | `PhoneItem` | 스마트폰 아이템 구현체. 마우스 우클릭 시 화면 확대/UI 인터랙션 모드 지원. |
 | `Item/NomalItem/NomalItem.cs` | `NomalItem` | 별도 기능 없이 운반/판매/투척 목적의 일반 화물/자원 아이템. |
-| `ItemSo/ItemSo.cs` | `ItemSo` | 아이템 메타데이터(이름, 무게, 슬롯 크기, 손 부착 오프셋, 애니메이터 오버라이드 등)를 정의하는 ScriptableObject. |
+| `Item/Data/ItemData.cs` | `ItemData` | 아이템 메타데이터(이름, 무게, 가격, 손 부착 오프셋, 애니메이터 오버라이드 등)를 정의하는 ScriptableObject. |
 
 ---
 
