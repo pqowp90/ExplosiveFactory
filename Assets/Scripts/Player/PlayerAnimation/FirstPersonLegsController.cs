@@ -37,14 +37,39 @@ public class FirstPersonLegsController : MonoBehaviour
 
     private readonly List<Transform> _hiddenBones = new List<Transform>();
     private bool _isInitialized = false;
+    private float _crouchRatio = 0f;
 
     private FirstPersonLegsSettings Settings => _player != null ? _player.FirstPersonLegsSettings : null;
 
-    public float GetSpineBackwardOffset() => Settings != null ? Settings.spineBackwardOffset : spineBackwardOffset;
-    public float GetSpineUpwardOffset() => Settings != null ? Settings.spineUpwardOffset : spineUpwardOffset;
-    public float GetChestBackwardOffset() => Settings != null ? Settings.chestBackwardOffset : chestBackwardOffset;
-    public float GetChestUpwardOffset() => Settings != null ? Settings.chestUpwardOffset : chestUpwardOffset;
-    public float GetUpperChestBackwardOffset() => Settings != null ? Settings.upperChestBackwardOffset : upperChestBackwardOffset;
+    public float GetEffectiveSpineBackwardOffset(float crouchRatio)
+    {
+        if (Settings == null) return spineBackwardOffset;
+        return Mathf.Lerp(Settings.spineBackwardOffset, Settings.crouchSpineBackwardOffset, crouchRatio);
+    }
+
+    public float GetEffectiveSpineUpwardOffset(float crouchRatio)
+    {
+        if (Settings == null) return spineUpwardOffset;
+        return Mathf.Lerp(Settings.spineUpwardOffset, Settings.crouchSpineUpwardOffset, crouchRatio);
+    }
+
+    public float GetEffectiveChestBackwardOffset(float crouchRatio)
+    {
+        if (Settings == null) return chestBackwardOffset;
+        return Mathf.Lerp(Settings.chestBackwardOffset, Settings.crouchChestBackwardOffset, crouchRatio);
+    }
+
+    public float GetEffectiveChestUpwardOffset(float crouchRatio)
+    {
+        if (Settings == null) return chestUpwardOffset;
+        return Mathf.Lerp(Settings.chestUpwardOffset, Settings.crouchChestUpwardOffset, crouchRatio);
+    }
+
+    public float GetEffectiveUpperChestBackwardOffset(float crouchRatio)
+    {
+        if (Settings == null) return upperChestBackwardOffset;
+        return Mathf.Lerp(Settings.upperChestBackwardOffset, Settings.crouchUpperChestBackwardOffset, crouchRatio);
+    }
 
     private void Awake()
     {
@@ -235,27 +260,38 @@ public class FirstPersonLegsController : MonoBehaviour
             basePos.z = _cameraTransform.position.z;
         }
 
-        // 다리 루트 위치: 3인칭 몸체 지면 높이(Y) 및 카메라 중심(X, Z) 완벽 유지
-        transform.position = basePos;
+        // 다리 루트 위치: 3인칭 몸체 지면 높이(Y) 및 모델 회전 기준 후방 오프셋(firstPersonBodyBackwardOffset) 적용
+        float bodyBack = Settings != null ? Settings.firstPersonBodyBackwardOffset : 0.12f;
+        transform.position = basePos - (transform.forward * bodyBack);
 
-        // 4. 상체 본 체인(Spine -> Chest -> UpperChest)을 위로 갈수록 비스듬히 점진적으로 더 뒤로 빼기 (회전 없이 위치만 점진적 오프셋)
-        float dynamicSpineBackward = GetSpineBackwardOffset() + (pitchRatio * 0.12f);
-        float dynamicChestBackward = dynamicSpineBackward + GetChestBackwardOffset() + (pitchRatio * 0.08f);
-        float dynamicUpperChestBackward = dynamicChestBackward + GetUpperChestBackwardOffset() + (pitchRatio * 0.06f);
+        // 4. 앉기(Crouch) 진행 비율 부드럽게 보간 (0: 서있음 ~ 1: 앉음)
+        bool isCrouching = _player != null && _player.PlayerMove != null && _player.PlayerMove.IsCrouching;
+        _crouchRatio = Mathf.Lerp(_crouchRatio, isCrouching ? 1f : 0f, Time.deltaTime * 9f);
 
-        if (_spineTransform != null && (dynamicSpineBackward > 0.001f || Mathf.Abs(GetSpineUpwardOffset()) > 0.001f))
+        float currentSpineBackward = GetEffectiveSpineBackwardOffset(_crouchRatio);
+        float currentSpineUpward = GetEffectiveSpineUpwardOffset(_crouchRatio);
+        float currentChestBackward = GetEffectiveChestBackwardOffset(_crouchRatio);
+        float currentChestUpward = GetEffectiveChestUpwardOffset(_crouchRatio);
+        float currentUpperChestBackward = GetEffectiveUpperChestBackwardOffset(_crouchRatio);
+
+        // 5. 상체 본 체인(Spine -> Chest -> UpperChest)을 위로 갈수록 비스듬히 점진적으로 더 뒤로 빼기 (회전 없이 위치만 점진적 오프셋)
+        float dynamicSpineBackward = currentSpineBackward + (pitchRatio * 0.12f);
+        float dynamicChestBackward = dynamicSpineBackward + currentChestBackward + (pitchRatio * 0.08f);
+        float dynamicUpperChestBackward = dynamicChestBackward + currentUpperChestBackward + (pitchRatio * 0.06f);
+
+        if (_spineTransform != null && (dynamicSpineBackward > 0.001f || Mathf.Abs(currentSpineUpward) > 0.001f))
         {
-            _spineTransform.position += (camBackward * dynamicSpineBackward) + (Vector3.up * GetSpineUpwardOffset());
+            _spineTransform.position += (camBackward * dynamicSpineBackward) + (Vector3.up * currentSpineUpward);
         }
 
-        if (_chestTransform != null && (dynamicChestBackward > 0.001f || Mathf.Abs(GetChestUpwardOffset()) > 0.001f))
+        if (_chestTransform != null && (dynamicChestBackward > 0.001f || Mathf.Abs(currentChestUpward) > 0.001f))
         {
-            _chestTransform.position += (camBackward * dynamicChestBackward) + (Vector3.up * GetChestUpwardOffset());
+            _chestTransform.position += (camBackward * dynamicChestBackward) + (Vector3.up * currentChestUpward);
         }
 
         if (_upperChestTransform != null && dynamicUpperChestBackward > 0.001f)
         {
-            _upperChestTransform.position += (camBackward * dynamicUpperChestBackward) + (Vector3.up * GetChestUpwardOffset());
+            _upperChestTransform.position += (camBackward * dynamicUpperChestBackward) + (Vector3.up * currentChestUpward);
         }
     }
 }

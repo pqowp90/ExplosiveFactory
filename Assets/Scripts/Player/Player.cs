@@ -121,20 +121,40 @@ public class Player : NetworkBehaviour, IPoolable
 [System.Serializable]
 public class FirstPersonLegsSettings
 {
-    [Header("Slanted Torso Offsets (상체 비스듬히 뒤로 빼기 - 회전 없음)")]
-    [Tooltip("허리 하단(Spine)을 카메라 시선 뒤쪽으로 밀어주는 거리 (단위: m, 기본 0.15m)")]
+    [Header("First Person Body Offset (1인칭 시 몸체/다리 후방 이동)")]
+    [Tooltip("1인칭 로컬 플레이어일 때 3인칭 몸체(그림자) 및 1인칭 다리를 뒤로 빼는 거리 (단위: m, 기본 0.12m)")]
+    public float firstPersonBodyBackwardOffset = 0.12f;
+
+    [Header("Standing Torso Offsets (서 있을 때)")]
+    [Tooltip("서 있을 때 허리 하단(Spine) 후방 거리 (단위: m, 기본 0.15m)")]
     public float spineBackwardOffset = 0.15f;
 
-    [Tooltip("허리(Spine)를 위쪽(+Y)으로 이동시키는 거리 (단위: m, 기본 0.27m)")]
+    [Tooltip("서 있을 때 허리(Spine) 위쪽 높이 (단위: m, 기본 0.27m)")]
     public float spineUpwardOffset = 0.27f;
 
-    [Tooltip("가슴 중간(Chest)을 추가로 뒤로 밀어주는 거리 (단위: m, 기본 0.15m)")]
+    [Tooltip("서 있을 때 가슴 중간(Chest) 추가 후방 거리 (단위: m, 기본 0.15m)")]
     public float chestBackwardOffset = 0.15f;
 
-    [Tooltip("가슴(Chest)을 위쪽(+Y)으로 이동시키는 거리 (단위: m, 기본 0.15m)")]
+    [Tooltip("서 있을 때 가슴(Chest) 위쪽 높이 (단위: m, 기본 0.15m)")]
     public float chestUpwardOffset = 0.15f;
 
-    [Tooltip("가슴 상단(UpperChest)을 추가로 뒤로 밀어주는 거리 (단위: m, 기본 -0.16m)")]
+    [Tooltip("서 있을 때 가슴 상단(UpperChest) 추가 후방 거리 (단위: m, 기본 -0.16m)")]
     public float upperChestBackwardOffset = -0.16f;
+
+    [Header("Crouching Torso Offsets (앉았을 때)")]
+    [Tooltip("앉았을 때 허리 하단(Spine) 후방 거리 (단위: m, 기본 0.15m)")]
+    public float crouchSpineBackwardOffset = 0.15f;
+
+    [Tooltip("앉았을 때 허리(Spine) 위쪽 높이 (단위: m, 기본 0.27m)")]
+    public float crouchSpineUpwardOffset = 0.27f;
+
+    [Tooltip("앉았을 때 가슴 중간(Chest) 추가 후방 거리 (단위: m, 기본 0.15m)")]
+    public float crouchChestBackwardOffset = 0.15f;
+
+    [Tooltip("앉았을 때 가슴(Chest) 위쪽 높이 (단위: m, 기본 0.15m)")]
+    public float crouchChestUpwardOffset = 0.15f;
+
+    [Tooltip("앉았을 때 가슴 상단(UpperChest) 추가 후방 거리 (단위: m, 기본 -0.16m)")]
+    public float crouchUpperChestBackwardOffset = -0.16f;
 }
 

@@ -44,9 +44,10 @@ namespace ExplosiveFactory
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            // 게임 뷰 또는 씬 뷰가 아니면 렌더 패스 생략
-            if (renderingData.cameraData.cameraType != CameraType.Game &&
-                renderingData.cameraData.cameraType != CameraType.SceneView)
+            // 게임 뷰 또는 씬 뷰가 아니거나, Overlay 카메라(손 카메라)인 경우 렌더 패스 생략 (손/핸디 아이템 뒤로 아웃라인 차폐)
+            if ((renderingData.cameraData.cameraType != CameraType.Game &&
+                 renderingData.cameraData.cameraType != CameraType.SceneView) ||
+                renderingData.cameraData.renderType == CameraRenderType.Overlay)
             {
                 return;
             }
@@ -124,7 +125,8 @@ namespace ExplosiveFactory
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-                if (cameraData.cameraType != CameraType.Game && cameraData.cameraType != CameraType.SceneView)
+                if ((cameraData.cameraType != CameraType.Game && cameraData.cameraType != CameraType.SceneView) ||
+                    cameraData.renderType == CameraRenderType.Overlay)
                 {
                     return;
                 }
@@ -224,7 +226,8 @@ namespace ExplosiveFactory
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 var manager = global::OutlineManager.Instance;
-                if (manager == null || manager.ActiveRenderers.Count == 0 || _legacyMaskTextureHandle == null)
+                if (manager == null || manager.ActiveRenderers.Count == 0 || _legacyMaskTextureHandle == null ||
+                    renderingData.cameraData.renderType == CameraRenderType.Overlay)
                 {
                     return;
                 }

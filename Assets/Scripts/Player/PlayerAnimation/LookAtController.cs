@@ -83,6 +83,12 @@ public class LookAtController : MonoBehaviour
             _realRotation += deltaAngle * Time.deltaTime * 10f;
         }
         transform.eulerAngles = new Vector3(0, _realRotation, 0);
+
+        // 1인칭 로컬 플레이어일 때만 3인칭 몸체 모델(그림자)을 회전축 뒤로 오프셋
+        float bodyBack = (_player != null && _player.isOwned && _player.FirstPersonLegsSettings != null)
+            ? _player.FirstPersonLegsSettings.firstPersonBodyBackwardOffset
+            : 0f;
+        transform.localPosition = Quaternion.Euler(0, _realRotation - transform.parent.eulerAngles.y, 0) * new Vector3(0, 0, -bodyBack);
     }
 
     private void OnAnimatorIK(int layerIndex)

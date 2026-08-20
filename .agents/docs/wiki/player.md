@@ -74,6 +74,8 @@ GamePlayer (NetworkIdentity, Player, LocalPlayerSetter)
   - 로컬 플레이어 시점에서 `ShadowsOnly` 모드로 동작하여 바닥에 완벽한 전신 사람 그림자를 캐스팅.
 - **1인칭 전용 다리 (`PlayerLegTransform` / `FirstPersonLegsController`):**
   - 로컬 플레이어 화면에만 활성화 및 렌더링되며, 리모트 플레이어는 3인칭 몸체만 렌더링.
+  - **트랜스폼 분리 기반 회전 피봇 고정 & 1인칭 전용 몸체 후방 오프셋:** 부모(`Body`)의 회전축을 원점(0,0)에 완전 고정하여 60도 턴/회전 버티기 시 공전(궤도 회전) 및 흔들림을 원천 차단하고, 1인칭 로컬 플레이어 시점에서만 `LookAtController`의 로컬 Z 오프셋(`firstPersonBodyBackwardOffset`)과 1인칭 다리를 뒤로 빼주어 자연스러운 시야 및 그림자 정렬 완성.
+  - **서 있을 때 / 앉았을 때(Standing & Crouching) 개별 오프셋 및 실시간 보간:** 서 있을 때(`spineBackwardOffset` 등)와 앉았을 때(`crouchSpineBackwardOffset` 등)의 상체 각 부위별 오프셋을 프리팹 인스펙터에서 완전히 독립적으로 세팅할 수 있으며, 앉거나 일어설 때 상태 전이(`crouchRatio`)에 따라 부드럽게 실시간 Lerp 보간.
   - **앉기(Crouch) 시 지면 높이(Y) 동기화:** 앉을 때 CharacterController 높이 축소로 인한 루트 하강을 보정하기 위해, `basePos.y`를 `PlayerBodyTransform.position.y`와 실시간 동기화하여 앉을 때도 다리와 발이 바닥에 파묻히거나 공중에 뜨지 않고 완벽한 지면 접지 유지.
   - **프리팹 인스펙터 직렬화 설정(`FirstPersonLegsSettings`):** 불필요한 루트 위치/높이/커스텀 오프셋을 제거하고, 상체 각 부위별(Spine, Chest, UpperChest) 후방 및 상하 오프셋 설정만 깔끔하게 노출하여 프리팹 에셋에서 직관적으로 관리.
   - **무회전 점진적 상체 슬랜트(Slanted) 후방 오프셋:** 본의 억지 회전(Tilt)을 0으로 배제하고 다리와 골반(Hips)은 제자리에 고정하며, 척추 체인(`Spine: 0.15m, Up: 0.27m` ➔ `Chest: +0.15m, Up: 0.15m` ➔ `UpperChest: -0.16m`)을 점진적으로 뒤로 빼주어, 관절 왜곡 없이 상체만 비스듬하게 뒤로 쑥 물러난 사선형 1인칭 시야를 구현.

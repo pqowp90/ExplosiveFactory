@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5044700593068973099}
   - component: {fileID: 4563084426240295373}
   - component: {fileID: 6340874960328391614}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Spotlight and Beam HD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -261,7 +261,7 @@ GameObject:
   - component: {fileID: 6136440575994542090}
   - component: {fileID: 2329843037162614332}
   - component: {fileID: 7596222433124774849}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Flashlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
