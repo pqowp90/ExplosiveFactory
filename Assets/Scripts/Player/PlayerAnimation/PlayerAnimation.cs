@@ -113,47 +113,61 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     private float _HandRun = 0;
     private float _run = 0;
     // ------------------------------------------------- //
-    [SyncVar]
     private bool _isCrouching = false;
     public void SetCrouch(bool crouch)
     {
         if (_isCrouching == crouch) return;
+        _isCrouching = crouch;
         CmdSetCrouch(crouch);
     }
-    [Command]
+    [Command(requiresAuthority = false)]
     private void CmdSetCrouch(bool crouch)
     {
         _isCrouching = crouch;
+        RpcSetCrouch(crouch);
+    }
+    [ClientRpc]
+    private void RpcSetCrouch(bool crouch)
+    {
+        if (isOwned) return;
+        _isCrouching = crouch;
     }
     // ------------------------------------------------- //
-    [SyncVar]
     private bool _isRunning = false;
     public void SetRun(bool run)
     {
         if (_isRunning == run) return;
+        _isRunning = run;
         CmdSetRun(run);
     }
-    [Command]
+    [Command(requiresAuthority = false)]
     private void CmdSetRun(bool run)
     {
+        _isRunning = run;
+        RpcSetRun(run);
+    }
+    [ClientRpc]
+    private void RpcSetRun(bool run)
+    {
+        if (isOwned) return;
         _isRunning = run;
     }
     // ------------------------------------------------- //
     public void SetGrounded(bool grounded)
     {
-        _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Grounded, grounded);
-        _handAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+        if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+        if (_handAnimator != null) _handAnimator.SetBool(IMovementAnimation.Grounded, grounded);
     }
 
     public void SetJump()
     {
-        _bodyCustomNetworkAnimator.SetTrigger(IMovementAnimation.Jump);
-        _handAnimator.SetTrigger(IMovementAnimation.Jump);
+        if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetTrigger(IMovementAnimation.Jump);
+        if (_handAnimator != null) _handAnimator.SetTrigger(IMovementAnimation.Jump);
     }
     public void ResetJump()
     {
-        _bodyCustomNetworkAnimator.ResetTrigger(IMovementAnimation.Jump);
-        _handAnimator.ResetTrigger(IMovementAnimation.Jump);
+        if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.ResetTrigger(IMovementAnimation.Jump);
+        if (_handAnimator != null) _handAnimator.ResetTrigger(IMovementAnimation.Jump);
     }
     private List<Vector2> _latestMoves = new List<Vector2>();
     private Vector2 _moveValue;
@@ -161,8 +175,11 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         if (!isOwned)
         {
-            _moveValue = new Vector2(_bodyCustomNetworkAnimator.Animator.GetFloat(IMovementAnimation.MoveX),
-                _bodyCustomNetworkAnimator.Animator.GetFloat(IMovementAnimation.MoveY));
+            if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
+            {
+                _moveValue = new Vector2(_bodyCustomNetworkAnimator.Animator.GetFloat(IMovementAnimation.MoveX),
+                    _bodyCustomNetworkAnimator.Animator.GetFloat(IMovementAnimation.MoveY));
+            }
         }
         if (_latestMoves.Count > 10)
             _latestMoves.RemoveAt(0);
@@ -178,14 +195,20 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     public bool IsMoving => _moveValue.magnitude > 0.1f;
     public void SetMove(Vector3 move)
     {
-        _bodyCustomNetworkAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
-        _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
-        _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
-        _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
-        _handAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
-        _handAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
-        _handAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
-        _handAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+        if (_bodyCustomNetworkAnimator != null)
+        {
+            _bodyCustomNetworkAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
+            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
+            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
+            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+        }
+        if (_handAnimator != null)
+        {
+            _handAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
+            _handAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
+            _handAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
+            _handAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+        }
 
         _moveValue = new Vector2(move.x, move.y);
     }
@@ -193,18 +216,36 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
 
     public void SetSpeed(float speed)
     {
-        _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.Speed, speed);
-        _handAnimator.SetFloat(IMovementAnimation.Speed, speed);
+        if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.Speed, speed);
+        if (_handAnimator != null) _handAnimator.SetFloat(IMovementAnimation.Speed, speed);
     }
 
     public void SetSprint(bool sprint)
     {
-        _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Sprint, sprint);
-        _handAnimator.SetBool(IMovementAnimation.Sprint, sprint);
+        if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Sprint, sprint);
+        if (_handAnimator != null) _handAnimator.SetBool(IMovementAnimation.Sprint, sprint);
     }
-    [SyncVar]
     private bool _isHoldingItem = false;
     public void SetHoldingItem(bool holdingItem)
+    {
+        _isHoldingItem = holdingItem;
+        if (NetworkServer.active)
+        {
+            RpcSetHoldingItem(holdingItem);
+        }
+        else
+        {
+            CmdSetHoldingItem(holdingItem);
+        }
+    }
+    [Command(requiresAuthority = false)]
+    private void CmdSetHoldingItem(bool holdingItem)
+    {
+        _isHoldingItem = holdingItem;
+        RpcSetHoldingItem(holdingItem);
+    }
+    [ClientRpc]
+    private void RpcSetHoldingItem(bool holdingItem)
     {
         _isHoldingItem = holdingItem;
     }

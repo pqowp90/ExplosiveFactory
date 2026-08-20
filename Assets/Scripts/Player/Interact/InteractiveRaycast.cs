@@ -47,12 +47,7 @@ public class InteractiveRaycast : MonoBehaviour
                 {
                     _currentInteractable.OnWatch();
 
-                    bool interactTriggered = _player.InputController != null && _player.InputController.InteractAction != null && _player.InputController.InteractAction.triggered;
-                    if (!interactTriggered && Keyboard.current != null)
-                    {
-                        interactTriggered = Keyboard.current.fKey.wasPressedThisFrame;
-                    }
-
+                    bool interactTriggered = _player.InputController != null && _player.InputController.IsInteractTriggered;
                     if (interactTriggered)
                     {
                         if (_currentInteractable is Item item)
@@ -89,8 +84,7 @@ public class InteractiveRaycast : MonoBehaviour
             ClearInteractText();
         }
 
-        bool dropTriggered = (_player.InputController != null && _player.InputController.DropAction != null && _player.InputController.DropAction.triggered)
-            || (Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame);
+        bool dropTriggered = _player.InputController != null && _player.InputController.IsDropTriggered;
         if (dropTriggered && _player.ItemHolder != null)
         {
             _player.ItemHolder.DropItem();
