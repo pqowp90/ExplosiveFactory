@@ -21,6 +21,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
 
     private CustomNetworkAnimator _bodyCustomNetworkAnimator;
     private Animator _handAnimator;
+    private Animator _legAnimator;
     private AnimationTriggerEventHolder _animationTriggerEventHolder;
     private Player _player;
     public SwayNBobScript SwayNBobScript;
@@ -30,6 +31,8 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         _player = GetComponent<Player>();
         if (_player != null && _player.PlayerBodyTransform != null)
             _bodyCustomNetworkAnimator = _player.PlayerBodyTransform.GetComponentInChildren<CustomNetworkAnimator>();
+        if (_player != null && _player.PlayerLegTransform != null)
+            _legAnimator = _player.PlayerLegTransform.GetComponentInChildren<Animator>();
         if (_player != null && _player.PlayerHandTransform != null)
         {
             _handAnimator = _player.PlayerHandTransform.GetComponent<Animator>();
@@ -43,6 +46,14 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             }
         }
         SwayNBobScript = GetComponentInChildren<SwayNBobScript>();
+    }
+
+    private void Start()
+    {
+        if (_legAnimator == null && _player != null && _player.PlayerLegTransform != null)
+        {
+            _legAnimator = _player.PlayerLegTransform.GetComponentInChildren<Animator>();
+        }
     }
     [Command(requiresAuthority = false)]
     private void CmdTriggerEvent(int triggerID)
@@ -69,6 +80,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetFloat(RayDistHash, rayDist);
         if (_handAnimator != null) _handAnimator.SetFloat(RayDistHash, rayDist);
+        if (_legAnimator != null) _legAnimator.SetFloat(RayDistHash, rayDist);
     }
     public void SetItem(object handyItemObject)
     {
@@ -81,6 +93,8 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             _bodyCustomNetworkAnimator.Animator.SetFloat(IMovementAnimation.Crouch, _crouch);
         if (_handAnimator != null)
             _handAnimator.SetFloat(IMovementAnimation.Crouch, _crouch);
+        if (_legAnimator != null)
+            _legAnimator.SetFloat(IMovementAnimation.Crouch, _crouch);
 
         if (_isCrouching)
         {
@@ -96,6 +110,8 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             _bodyCustomNetworkAnimator.Animator.SetFloat(IMovementAnimation.Run, _HandRun);
         if (_handAnimator != null)
             _handAnimator.SetFloat(IMovementAnimation.Run, _HandRun);
+        if (_legAnimator != null)
+            _legAnimator.SetFloat(IMovementAnimation.Run, _HandRun);
 
         if (_handAnimator != null)
         {
@@ -107,6 +123,10 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             _bodyCustomNetworkAnimator.Animator.SetLayerWeight(1, _isHoldingItem ? 1f : 0f);
             _currentTurn = Mathf.Lerp(_currentTurn, _turn, Time.deltaTime * 20f);
             _bodyCustomNetworkAnimator.Animator.SetFloat(TurnHash, _currentTurn);
+        }
+        if (_legAnimator != null)
+        {
+            _legAnimator.SetFloat(TurnHash, _currentTurn);
         }
     }
     private float _crouch = 0;
@@ -157,17 +177,20 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Grounded, grounded);
         if (_handAnimator != null) _handAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+        if (_legAnimator != null) _legAnimator.SetBool(IMovementAnimation.Grounded, grounded);
     }
 
     public void SetJump()
     {
         if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetTrigger(IMovementAnimation.Jump);
         if (_handAnimator != null) _handAnimator.SetTrigger(IMovementAnimation.Jump);
+        if (_legAnimator != null) _legAnimator.SetTrigger(IMovementAnimation.Jump);
     }
     public void ResetJump()
     {
         if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.ResetTrigger(IMovementAnimation.Jump);
         if (_handAnimator != null) _handAnimator.ResetTrigger(IMovementAnimation.Jump);
+        if (_legAnimator != null) _legAnimator.ResetTrigger(IMovementAnimation.Jump);
     }
     private List<Vector2> _latestMoves = new List<Vector2>();
     private Vector2 _moveValue;
@@ -209,6 +232,13 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             _handAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
             _handAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
         }
+        if (_legAnimator != null)
+        {
+            _legAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
+            _legAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
+            _legAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
+            _legAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+        }
 
         _moveValue = new Vector2(move.x, move.y);
     }
@@ -218,12 +248,14 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.Speed, speed);
         if (_handAnimator != null) _handAnimator.SetFloat(IMovementAnimation.Speed, speed);
+        if (_legAnimator != null) _legAnimator.SetFloat(IMovementAnimation.Speed, speed);
     }
 
     public void SetSprint(bool sprint)
     {
         if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Sprint, sprint);
         if (_handAnimator != null) _handAnimator.SetBool(IMovementAnimation.Sprint, sprint);
+        if (_legAnimator != null) _legAnimator.SetBool(IMovementAnimation.Sprint, sprint);
     }
     private bool _isHoldingItem = false;
     public bool IsHoldingItem => _isHoldingItem;

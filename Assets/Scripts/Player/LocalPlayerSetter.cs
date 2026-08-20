@@ -76,6 +76,18 @@ public class LocalPlayerSetter : NetworkBehaviour
         }
     }
 
+    private void SetRenderersNoShadow(Transform target)
+    {
+        if (target == null) return;
+        target.gameObject.SetActive(true);
+        var renderers = target.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in renderers)
+        {
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            r.enabled = true;
+        }
+    }
+
     public override void OnStartClient()
     {
         base.OnStartClient();
@@ -103,10 +115,15 @@ public class LocalPlayerSetter : NetworkBehaviour
             }
             if (_playerInput != null) _playerInput.enabled = false;
 
-            // 2. 1인칭 손 렌더러 숨김
+            // 2. 1인칭 손 및 1인칭 다리 렌더러 숨김
             if (_player != null && _player.PlayerHandTransform != null)
             {
                 SetRenderersActive(_player.PlayerHandTransform, false);
+            }
+            if (_player != null && _player.PlayerLegTransform != null)
+            {
+                SetRenderersActive(_player.PlayerLegTransform, false);
+                _player.PlayerLegTransform.gameObject.SetActive(false);
             }
 
             // 3. 3인칭 전신 모델 보이기
@@ -164,7 +181,13 @@ public class LocalPlayerSetter : NetworkBehaviour
                 SetRenderersActive(_player.PlayerHandTransform, true);
             }
 
-            // 6. 3인칭 몸체(얼굴/선글라스/몸통)는 화면에서 가리고 바닥 그림자만 남김 (ShadowsOnly)
+            // 6. 1인칭 다리 렌더러 켜기 (그림자는 끄고 1인칭 카메라에만 표시)
+            if (_player != null && _player.PlayerLegTransform != null)
+            {
+                SetRenderersNoShadow(_player.PlayerLegTransform);
+            }
+
+            // 7. 3인칭 몸체는 화면에서 가리고 바닥에 완벽한 전신 사람 그림자만 남김 (ShadowsOnly)
             if (_player != null && _player.PlayerBodyTransform != null)
             {
                 SetRenderersShadowOnly(_player.PlayerBodyTransform, true);

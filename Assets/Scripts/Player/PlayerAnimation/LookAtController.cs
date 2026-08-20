@@ -32,6 +32,7 @@ public class LookAtController : MonoBehaviour
     private Player _player;
     private Transform _spineTransform;
     private Transform _chestTransform;
+    private Transform _neckTransform;
     private Transform _headTransform;
 
     private float _curRotation = 0f;
@@ -48,6 +49,7 @@ public class LookAtController : MonoBehaviour
         {
             _spineTransform = _animator.GetBoneTransform(HumanBodyBones.Spine);
             _chestTransform = _animator.GetBoneTransform(HumanBodyBones.Chest);
+            _neckTransform = _animator.GetBoneTransform(HumanBodyBones.Neck);
             _headTransform = _animator.GetBoneTransform(HumanBodyBones.Head);
         }
 
@@ -90,26 +92,31 @@ public class LookAtController : MonoBehaviour
 
         bool isHolding = _player != null && _player.PlayerAnimation != null && _player.PlayerAnimation.IsHoldingItem;
 
-        if (_networkAnimator != null)
+        if (_networkAnimator != null && objectToLookAt != null)
         {
-            if (isHolding && objectToLookAt != null && headWeight > 0f)
+            if (isHolding)
             {
-                _networkAnimator.SetLookAtPosition(objectToLookAt.position);
-                _networkAnimator.SetLookAtWeight(1f, 0f, headWeight, 0f, 0.5f);
+                if (headWeight > 0f)
+                {
+                    _networkAnimator.SetLookAtPosition(objectToLookAt.position);
+                    _networkAnimator.SetLookAtWeight(1f, 0f, headWeight, 0f, 0.5f);
+                }
+                else
+                {
+                    _networkAnimator.SetLookAtWeight(0f, 0f, 0f, 0f, 0f);
+                }
             }
             else
             {
-                _networkAnimator.SetLookAtWeight(0f, 0f, 0f, 0f, 0f);
+                // 빈손 상태: 머리와 시선이 타겟을 부드럽게 바라보도록 LookAt IK 동작
+                _networkAnimator.SetLookAtPosition(objectToLookAt.position);
+                _networkAnimator.SetLookAtWeight(1f, 0.05f, 0.8f, 0.5f, 0.5f);
             }
         }
     }
 
     private void LateUpdate()
     {
-        // 빈손 상태일 때는 상체 월드 고정을 건너뛰어 자연스러운 전신 달리기/걷기 애니메이션 유지
-        bool isHolding = _player != null && _player.PlayerAnimation != null && _player.PlayerAnimation.IsHoldingItem;
-        if (!isHolding) return;
-
         // 1. 플레이어 몸체(루트)의 수평 기준 각도 (Yaw)
         float bodyYaw = _player != null ? _player.transform.eulerAngles.y : transform.parent != null ? transform.parent.eulerAngles.y : transform.eulerAngles.y;
 
@@ -127,35 +134,64 @@ public class LookAtController : MonoBehaviour
             }
         }
 
-        // 3. 1단계: 허리(Spine)에 50% 회전 적용 (골반 롤링 차단 + 하부 척추 굽힘)
-        if (_spineTransform != null)
-        {
-            float spinePitch = fullPitch * spinePitchRatio;
-            Quaternion targetSpineRotation = Quaternion.Euler(spinePitch, bodyYaw, 0f);
+        bool isHolding = _player != null && _player.PlayerAnimation != null && _player.PlayerAnimation.IsHoldingItem;
 
-            if (spineWorldStabilizeWeight >= 0.99f)
+        if (isHolding)
+        {
+            // [아이템 파지 상태] ➔ 상체 월드 고정 + 상하 50/50 조준
+            // 1단계: 허리(Spine)에 50% 회전 적용 (골반 롤링 차단 + 하부 척추 굽힘)
+            if (_spineTransform != null)
             {
-                _spineTransform.rotation = targetSpineRotation;
+                float spinePitch = fullPitch * spinePitchRatio;
+                Quaternion targetSpineRotation = Quaternion.Euler(spinePitch, bodyYaw, 0f);
+
+                if (spineWorldStabilizeWeight >= 0.99f)
+                {
+                    _spineTransform.rotation = targetSpineRotation;
+                }
+                else
+                {
+                    _spineTransform.rotation = Quaternion.Slerp(_spineTransform.rotation, targetSpineRotation, spineWorldStabilizeWeight);
+                }
             }
-            else
+
+            // 2단계: 가슴(Chest)에 나머지 50% 추가 적용 (총 100% 시선 각도 도달, 양팔/목/머리 최종 일치)
+            if (_chestTransform != null)
             {
-                _spineTransform.rotation = Quaternion.Slerp(_spineTransform.rotation, targetSpineRotation, spineWorldStabilizeWeight);
+                float chestPitch = fullPitch * (spinePitchRatio + chestPitchRatio);
+                Quaternion targetChestRotation = Quaternion.Euler(chestPitch, bodyYaw, 0f);
+
+                if (spineWorldStabilizeWeight >= 0.99f)
+                {
+                    _chestTransform.rotation = targetChestRotation;
+                }
+                else
+                {
+                    _chestTransform.rotation = Quaternion.Slerp(_chestTransform.rotation, targetChestRotation, spineWorldStabilizeWeight);
+                }
             }
         }
-
-        // 4. 2단계: 가슴(Chest)에 나머지 50% 추가 적용 (총 100% 시선 각도 도달, 양팔/목/머리 최종 일치)
-        if (_chestTransform != null)
+        else
         {
-            float chestPitch = fullPitch * (spinePitchRatio + chestPitchRatio);
-            Quaternion targetChestRotation = Quaternion.Euler(chestPitch, bodyYaw, 0f);
-
-            if (spineWorldStabilizeWeight >= 0.99f)
+            // [빈손 상태] ➔ Spine(30%) + Chest(30%) + Neck(20%) + Head(20%) 전체 관절에 부드러운 스플라인 분배
+            if (Mathf.Abs(fullPitch) > 0.01f)
             {
-                _chestTransform.rotation = targetChestRotation;
-            }
-            else
-            {
-                _chestTransform.rotation = Quaternion.Slerp(_chestTransform.rotation, targetChestRotation, spineWorldStabilizeWeight);
+                if (_spineTransform != null)
+                {
+                    _spineTransform.localRotation *= Quaternion.Euler(fullPitch * 0.3f, 0f, 0f);
+                }
+                if (_chestTransform != null)
+                {
+                    _chestTransform.localRotation *= Quaternion.Euler(fullPitch * 0.3f, 0f, 0f);
+                }
+                if (_neckTransform != null)
+                {
+                    _neckTransform.localRotation *= Quaternion.Euler(fullPitch * 0.2f, 0f, 0f);
+                }
+                if (_headTransform != null)
+                {
+                    _headTransform.localRotation *= Quaternion.Euler(fullPitch * 0.2f, 0f, 0f);
+                }
             }
         }
     }

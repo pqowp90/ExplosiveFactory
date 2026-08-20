@@ -62,8 +62,20 @@ GamePlayer (NetworkIdentity, Player, LocalPlayerSetter)
 ## 5. 절차적 상체/척추 시선 제어 (`LookAtController.cs`)
 
 - **아이템 파지 시 상체 일체화 및 골반 흔들림 차단:**
-  - 아이템 파지(`IsHoldingItem`) 시, 하체 걷기/달리기 애니메이션에 의한 골반(Hips)의 좌우 롤링/요동침이 상체로 전파되지 않도록 `Spine` 및 `Chest` 본의 월드 회전을 플레이어 정면(Yaw)으로 안정화합니다.
-  - 빈손 상태에서는 IK와 상체 고정을 완전 비활성화하여 자연스러운 전신 달리기 모션을 유지합니다.
-- **허리 50% + 가슴 50% 다중 관절 상하 피치 분배:**
-  - 시선 상하 각도(Pitch, 최대 ±80°)를 `Spine`(50%)과 `Chest`(50%)에 균등 분배하여 위/아래를 볼 때 100% 각도가 시원하게 회전하며 자연스러운 인체 척추 곡선을 형성합니다.
+  - 아이템 파지(`IsHoldingItem`) 시, 하체 걷기/달리기 애니메이션에 의한 골반(Hips)의 좌우 롤링/요동침이 상체로 전파되지 않도록 `Spine` 및 `Chest` 본의 월드 회전을 플레이어 정면(Yaw)으로 안정화하고 허리/가슴 50/50으로 단단하게 조준합니다.
+- **빈손 상태의 유연한 전신 척추 스플라인 곡선 및 시선 추적:**
+  - 빈손 상태에서는 LookAt IK를 통해 시선을 자연스럽게 추적하며, 상하(Pitch) 각도를 `Spine`(30%) + `Chest`(30%) + `Neck`(20%) + `Head`(20%)의 4단계 척추-목-머리 관절로 부드럽게 분배하여 편안하고 자연스러운 사람 인체 곡선으로 시선을 처리합니다.
+
+---
+
+## 6. 1인칭 전용 다리 시스템 (`FirstPersonLegsController.cs`)
+
+- **3인칭 전신 모델 (`PlayerBodyTransform`):**
+  - 로컬 플레이어 시점에서 `ShadowsOnly` 모드로 동작하여 바닥에 완벽한 전신 사람 그림자를 캐스팅.
+- **1인칭 전용 다리 (`PlayerLegTransform` / `FirstPersonLegsController`):**
+  - 로컬 플레이어 화면에만 렌더링되며 그림자는 비활성화(`ShadowCastingMode.Off`).
+  - 팔(`LeftShoulder`, `RightShoulder`, `LeftArm`, `RightArm`) 및 머리/목(`Head`, `Neck`) 본의 스케일을 `(0, 0, 0)`으로 축소하여 시야 가림 원천 제거.
+  - `Spine`(허리) 본을 카메라 뒤쪽(`Z: -0.18m`)으로 오프셋하여 고개를 푹 숙여도 가슴/목 뚫림 없이 바지와 다리, 걸어가는 발걸음만 깨끗하게 렌더링.
+  - `PlayerAnimation.cs`를 통해 이동/점프/앉기/회전 애니메이션 파라미터 100% 동기화.
+
 

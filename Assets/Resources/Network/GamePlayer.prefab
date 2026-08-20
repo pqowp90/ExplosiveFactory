@@ -1225,6 +1225,7 @@ MonoBehaviour:
   PlayerInput: {fileID: 0}
   PlayerBodyTransform: {fileID: 6368314774866060621}
   PlayerHandTransform: {fileID: 6678302551413344143}
+  PlayerLegTransform: {fileID: 0}
   Camera: {fileID: 0}
   HandCamera: {fileID: 0}
 --- !u!114 &4159627976724627172

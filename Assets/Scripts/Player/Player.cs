@@ -18,6 +18,7 @@ public class Player : NetworkBehaviour, IPoolable
     public PlayerInput PlayerInput;
     public Transform PlayerBodyTransform;
     public Transform PlayerHandTransform;
+    public Transform PlayerLegTransform;
     private InputController _inputController;
     public Camera Camera;
     public Camera HandCamera;
@@ -43,6 +44,31 @@ public class Player : NetworkBehaviour, IPoolable
         }
     }
 
+    public void SetupFirstPersonLegs()
+    {
+        if (PlayerLegTransform == null && PlayerBodyTransform != null)
+        {
+            // 3인칭 몸체를 복제하여 1인칭 전용 다리 생성
+            GameObject legsObj = Instantiate(PlayerBodyTransform.gameObject, transform);
+            legsObj.name = "FirstPersonLegs";
+
+            // 1인칭 다리에 불필요한 3인칭 컴포넌트 제거
+            var lookAt = legsObj.GetComponentInChildren<LookAtController>();
+            if (lookAt != null) Destroy(lookAt);
+
+            var netAnimator = legsObj.GetComponentInChildren<CustomNetworkAnimator>();
+            if (netAnimator != null) Destroy(netAnimator);
+
+            // 1인칭 다리 제어기 추가
+            if (legsObj.GetComponent<FirstPersonLegsController>() == null)
+            {
+                legsObj.AddComponent<FirstPersonLegsController>();
+            }
+
+            PlayerLegTransform = legsObj.transform;
+        }
+    }
+
     public void OnDespawned()
     {
         if (CursorManager.Instance != null)
@@ -61,6 +87,7 @@ public class Player : NetworkBehaviour, IPoolable
 
     private void Awake()
     {
+        SetupFirstPersonLegs();
         ItemHolder = GetComponent<ItemHolder>();
         PlayerMove = GetComponent<PlayerMove>();
         PlayerRotate = GetComponent<PlayerRotate>();

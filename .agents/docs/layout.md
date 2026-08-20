@@ -39,6 +39,7 @@
 | `Player/PlayerAnimation/PlayerAnimation.cs` | `PlayerAnimation` | 1인칭/3인칭 애니메이터 제어 및 이동 상태(속도, 점프, 앉기) 파라미터 갱신. |
 | `Player/PlayerAnimation/IMovementAnimation.cs` | `IMovementAnimation` | 이동 애니메이션 상태 갱신을 위한 공용 인터페이스. |
 | `Player/PlayerAnimation/LookAtController.cs` | `LookAtController` | 3인칭 모델의 머리/상체가 카메라 시선 방향을 자연스럽게 바라보도록 하는 절차적 IK/LookAt 제어. |
+| `Player/PlayerAnimation/FirstPersonLegsController.cs` | `FirstPersonLegsController` | 1인칭 전용 다리(Legs) 제어 컴포넌트. 팔/머리 본을 (0,0,0)으로 축소하고 허리/상체를 뒤로 오프셋하여 1인칭 시야 간섭 없이 하체 렌더링 지원. |
 
 ---
 
