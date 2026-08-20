@@ -1,44 +1,62 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using ExplosiveFactory.Item.Data;
 using UnityEngine;
 
 [SingletonLifeTime(LifeTime.Application)]
-public class ItemSOManager : MonoSingleton<ItemSOManager>
+public class ItemDataManager : MonoSingleton<ItemDataManager>
 {
-    private static readonly string ItemSoPath = "SO/ItemSo";
-    private List<ItemSo> _itemSoList = new List<ItemSo>();
-    public List<ItemSo> ItemSoList => _itemSoList;
+    private static readonly string ItemDataPath = "ItemData";
+    private readonly List<ItemData> _itemDataList = new();
+    private readonly Dictionary<string, ItemData> _itemDataById = new();
+    private readonly Dictionary<int, ItemData> _itemDataByIntId = new();
+
+    public List<ItemData> ItemDataList => _itemDataList;
+
     protected override void Awake()
     {
         base.Awake();
-        LoadItemSoList();
+        LoadItemDataList();
     }
-    private void LoadItemSoList()
+
+    private void LoadItemDataList()
     {
-        _itemSoList.Clear();
-        var itemSoArray = Resources.LoadAll<ItemSo>(ItemSoPath);
-        foreach (var itemSo in itemSoArray)
+        _itemDataList.Clear();
+        _itemDataById.Clear();
+        _itemDataByIntId.Clear();
+
+        var itemDataArray = Resources.LoadAll<ItemData>(ItemDataPath);
+        foreach (var data in itemDataArray)
         {
-            _itemSoList.Add(itemSo);
+            if (data == null) continue;
+            _itemDataList.Add(data);
+
+            if (!string.IsNullOrEmpty(data.id) && !_itemDataById.ContainsKey(data.id))
+            {
+                _itemDataById.Add(data.id, data);
+            }
+
+            if (!_itemDataByIntId.ContainsKey(data.itemID))
+            {
+                _itemDataByIntId.Add(data.itemID, data);
+            }
         }
 
-        if (_itemSoList.Count == 0)
-        {
-            // SO가 없을 경우 기본 아이템 생성
-            var flashlight = ScriptableObject.CreateInstance<ItemSo>();
-            flashlight.itemID = 0;
-            flashlight.itemName = "Flashlight";
-            flashlight.itemPrice = 100;
-            _itemSoList.Add(flashlight);
+        _itemDataList.Sort((x, y) => x.itemID.CompareTo(y.itemID));
+        Debug.Log($"[ItemDataManager] Loaded {_itemDataList.Count} ItemData assets from Resources/{ItemDataPath}");
+    }
 
-            var phone = ScriptableObject.CreateInstance<ItemSo>();
-            phone.itemID = 1;
-            phone.itemName = "Phone";
-            phone.itemPrice = 250;
-            _itemSoList.Add(phone);
-        }
+    public ItemData? GetItemDataById(string id)
+    {
+        if (_itemDataById.TryGetValue(id, out var data))
+            return data;
+        return null;
+    }
 
-        _itemSoList.Sort((x, y) => x.itemID.CompareTo(y.itemID));
+    public ItemData? GetItemDataByIntId(int itemID)
+    {
+        if (_itemDataByIntId.TryGetValue(itemID, out var data))
+            return data;
+        return null;
     }
 }

@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: ItemData_Flashlight
   m_EditorClassIdentifier: ExplosiveFactory.Item.Data::ExplosiveFactory.Item.Data.ItemData
   id: Item_Flashlight
-  itemName: "\uC190\uC804\uB4F1 (Flashlight)"
-  description: "\uC5B4\uB450\uC6B4 \uACF3\uC744 \uBC1D\uD600\uC8FC\uB294 \uC190\uC804\uB4F1.
-    \uC6B0\uD074\uB9AD/F\uD0A4\uB85C On/Off."
+  itemID: 0
+  itemName: Flashlight
+  itemPrice: 50
+  description: Flashlight that illuminates dark areas.
   icon: {fileID: 21300000, guid: f1a54119000000000000000000000001, type: 3}
   prefab: {fileID: 1884679642479980569, guid: e1111111111111111111111111111111, type: 3}
   weight: 0.8

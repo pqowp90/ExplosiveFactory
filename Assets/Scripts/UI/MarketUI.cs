@@ -42,7 +42,7 @@ public class MarketUI : MonoBehaviour, IPoolable
     public void OnSpawned()
     {
         _marketAnimator.SetBool(CartHash, false);
-        foreach (var item in ItemSOManager.Instance.ItemSoList)
+        foreach (var item in ItemDataManager.Instance.ItemDataList)
         {
             _marketItems.Add(CreateMarketItem(item.itemID, item.itemName, item.itemPrice));
         }
