@@ -32,6 +32,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1000000007}
+  - {fileID: 7865626062614060093}
   m_Father: {fileID: 8860093420341680039}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1004,6 +1005,7 @@ GameObject:
   - component: {fileID: 4159627976724627172}
   - component: {fileID: 6718751537525774079}
   - component: {fileID: 3903740195909378244}
+  - component: {fileID: 9102947192837418291}
   m_Layer: 11
   m_Name: GamePlayer
   m_TagString: Untagged
@@ -1218,26 +1220,9 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  ItemHolder: {fileID: 0}
-  PlayerMove: {fileID: 0}
-  PlayerRotate: {fileID: 0}
-  PlayerAnimation: {fileID: 0}
-  PlayerInput: {fileID: 0}
   PlayerBodyTransform: {fileID: 6368314774866060621}
   PlayerHandTransform: {fileID: 6678302551413344143}
   PlayerLegTransform: {fileID: 0}
-  FirstPersonLegsSettings:
-    firstPersonBodyBackwardOffset: 0.27
-    spineBackwardOffset: 0.03
-    spineUpwardOffset: 0.06
-    chestBackwardOffset: 0.03
-    chestUpwardOffset: 0.06
-    upperChestBackwardOffset: 0
-    crouchSpineBackwardOffset: 0.06
-    crouchSpineUpwardOffset: 0.06
-    crouchChestBackwardOffset: 0.06
-    crouchChestUpwardOffset: 0.06
-    crouchUpperChestBackwardOffset: 0
   Camera: {fileID: 7976471606809578931}
   HandCamera: {fileID: 5837207666424861578}
 --- !u!114 &4159627976724627172
@@ -1384,6 +1369,105 @@ MonoBehaviour:
     m_SingletonActionBindings: []
     m_Flags: 0
   IsInitialized: 0
+--- !u!114 &9102947192837418291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3944694386142785221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 035f817cc33ac024ba02fa94f8b820eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _settings:
+    firstPersonBodyBackwardOffset: 0.27
+    spineBackwardOffset: 0.03
+    spineUpwardOffset: 0.1
+    chestBackwardOffset: 0.03
+    chestUpwardOffset: 0.1
+    upperChestBackwardOffset: 0
+    crouchSpineBackwardOffset: 0.06
+    crouchSpineUpwardOffset: 0.1
+    crouchChestBackwardOffset: 0.06
+    crouchChestUpwardOffset: 0.1
+    crouchUpperChestBackwardOffset: 0
+--- !u!1 &4200834464797830281
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7865626062614060093}
+  - component: {fileID: 4493243965652487346}
+  - component: {fileID: 3633419414848870001}
+  m_Layer: 5
+  m_Name: Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7865626062614060093
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200834464797830281}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1000000002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 10, y: 10}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &4493243965652487346
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200834464797830281}
+  m_CullTransparentMesh: 1
+--- !u!114 &3633419414848870001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200834464797830281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &4560574585813956673
 GameObject:
   m_ObjectHideFlags: 0
@@ -3496,6 +3580,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 80e454c2c4355f64f89d8c7479184da1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4524800305112411033}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 80e454c2c4355f64f89d8c7479184da1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9102947192837418292}
   m_SourcePrefab: {fileID: 100100000, guid: 80e454c2c4355f64f89d8c7479184da1, type: 3}
 --- !u!4 &1312472979486526869 stripped
 Transform:
@@ -3541,6 +3628,32 @@ MonoBehaviour:
   chestPitchRatio: 0.5
   maxPitchAngle: 80
   spineWorldStabilizeWeight: 1
+--- !u!114 &9102947192837418292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4957295778024940807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a36d46ad30ddc8d469f665eda1ee2047, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableFootIK: 1
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 39
+  raycastStartHeight: 0.4
+  raycastLength: 0.9
+  footBottomOffset: 0.108
+  footForwardOffset: 0.05
+  enableFootRotation: 1
+  maxSlopeAngle: 60
+  footPlacementSpeed: 18
+  pelvisCorrectionSpeed: 14
+  maxPelvisDrop: 0.4
+  maxPelvisRise: 0.4
 --- !u!4 &5728590349757595581 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 80e454c2c4355f64f89d8c7479184da1, type: 3}

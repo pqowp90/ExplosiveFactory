@@ -202,6 +202,29 @@ public class LocalPlayerSetter : NetworkBehaviour
             {
                 SetRenderersShadowOnly(_player.PlayerBodyTransform, true);
             }
+
+            // 8. 로컬 플레이어 커서 잠금 설정
+            if (CursorManager.Instance != null)
+            {
+                CursorManager.Instance.SetCursor(CursorType.Player, this);
+            }
+        }
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+        if (isOwned && CursorManager.Instance != null)
+        {
+            CursorManager.Instance.UnsetCursorFromSource(this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (isOwned && CursorManager.Instance != null)
+        {
+            CursorManager.Instance.UnsetCursorFromSource(this);
         }
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 /// - 상체(Spine, Chest) 및 몸체를 카메라 뒤쪽(-Z)으로 밀어내어 꼿꼿한 형태를 방지하고,
 ///   고개를 아래로 숙였을 때 가슴/등이 카메라를 뚫지 않으면서 다리와 발끝이 자연스럽게 시야 하단에 들어오도록 합니다.
 /// </summary>
-public class FirstPersonLegsController : MonoBehaviour
+public class FirstPersonLegsController : PlayerComponent
 {
     [Header("Slanted Torso Offsets (상체 비스듬히 뒤로 빼기 - 회전 없음)")]
     [Tooltip("허리 하단(Spine)을 카메라 시선 뒤쪽으로 밀어주는 거리 (단위: m, 기본 0.15m)")]
@@ -26,7 +26,6 @@ public class FirstPersonLegsController : MonoBehaviour
     public float upperChestBackwardOffset = -0.16f;
 
     private Animator _animator;
-    private Player _player;
     private Transform _cameraTransform;
     private Transform _thirdPersonModelTransform;
 
@@ -39,7 +38,10 @@ public class FirstPersonLegsController : MonoBehaviour
     private bool _isInitialized = false;
     private float _crouchRatio = 0f;
 
-    private FirstPersonLegsSettings Settings => _player != null ? _player.FirstPersonLegsSettings : null;
+    [Header("Settings Data")]
+    public FirstPersonLegsSettings settings;
+
+    private FirstPersonLegsSettings Settings => settings ?? (LegsSetup != null ? LegsSetup.Settings : null);
 
     public float GetEffectiveSpineBackwardOffset(float crouchRatio)
     {
@@ -73,7 +75,6 @@ public class FirstPersonLegsController : MonoBehaviour
 
     private void Awake()
     {
-        _player = GetComponentInParent<Player>();
         _animator = GetComponentInChildren<Animator>();
     }
 
@@ -92,21 +93,21 @@ public class FirstPersonLegsController : MonoBehaviour
 
     private void InitializeBones()
     {
-        if (_player != null && _player.Camera != null)
+        if (Camera != null)
         {
-            _cameraTransform = _player.Camera.transform;
+            _cameraTransform = Camera.transform;
         }
 
-        if (_player != null && _player.PlayerBodyTransform != null)
+        if (PlayerBodyTransform != null)
         {
-            var lookAt = _player.PlayerBodyTransform.GetComponentInChildren<LookAtController>();
+            var lookAt = PlayerBodyTransform.GetComponentInChildren<LookAtController>();
             if (lookAt != null)
             {
                 _thirdPersonModelTransform = lookAt.transform;
             }
             else
             {
-                _thirdPersonModelTransform = _player.PlayerBodyTransform;
+                _thirdPersonModelTransform = PlayerBodyTransform;
             }
         }
 
@@ -178,7 +179,7 @@ public class FirstPersonLegsController : MonoBehaviour
     private void LateUpdate()
     {
         // 로컬 플레이어 확인 (로컬 플레이어가 아닌 경우 1인칭 다리 비활성화)
-        if (_player != null && !_player.isOwned)
+        if (Player != null && !IsOwned)
         {
             gameObject.SetActive(false);
             return;
@@ -189,15 +190,15 @@ public class FirstPersonLegsController : MonoBehaviour
             InitializeBones();
         }
 
-        if (_cameraTransform == null && _player != null && _player.Camera != null)
+        if (_cameraTransform == null && Camera != null)
         {
-            _cameraTransform = _player.Camera.transform;
+            _cameraTransform = Camera.transform;
         }
 
-        if (_thirdPersonModelTransform == null && _player != null && _player.PlayerBodyTransform != null)
+        if (_thirdPersonModelTransform == null && PlayerBodyTransform != null)
         {
-            var lookAt = _player.PlayerBodyTransform.GetComponentInChildren<LookAtController>();
-            _thirdPersonModelTransform = lookAt != null ? lookAt.transform : _player.PlayerBodyTransform;
+            var lookAt = PlayerBodyTransform.GetComponentInChildren<LookAtController>();
+            _thirdPersonModelTransform = lookAt != null ? lookAt.transform : PlayerBodyTransform;
         }
 
         // 1. 머리, 목, 어깨, 팔, 손 전체 본 스케일을 (0, 0, 0)으로 매 프레임 강제 축소
@@ -225,9 +226,9 @@ public class FirstPersonLegsController : MonoBehaviour
         {
             transform.rotation = _thirdPersonModelTransform.rotation;
         }
-        else if (_player != null && _player.PlayerBodyTransform != null)
+        else if (PlayerBodyTransform != null)
         {
-            transform.rotation = _player.PlayerBodyTransform.rotation;
+            transform.rotation = PlayerBodyTransform.rotation;
         }
 
         // 카메라의 수평 시선 전방/후방 벡터 계산 (몸체 회전과 무관하게 항상 카메라 시선 기준 유지)
@@ -237,20 +238,20 @@ public class FirstPersonLegsController : MonoBehaviour
             camForward = Vector3.ProjectOnPlane(_cameraTransform.forward, Vector3.up).normalized;
             if (camForward.sqrMagnitude < 0.001f)
             {
-                camForward = _player != null ? _player.transform.forward : transform.forward;
+                camForward = Player != null ? Player.transform.forward : transform.forward;
             }
         }
-        else if (_player != null)
+        else if (Player != null)
         {
-            camForward = _player.transform.forward;
+            camForward = Player.transform.forward;
         }
         Vector3 camBackward = -camForward;
 
-        Vector3 basePos = _player != null ? _player.transform.position : transform.position;
-        if (_player != null && _player.PlayerBodyTransform != null)
+        Vector3 basePos = Player != null ? Player.transform.position : transform.position;
+        if (PlayerBodyTransform != null)
         {
             // 앉기(Crouch) 등으로 인해 3인칭 몸체 높이가 보정되는 월드 Y 좌표를 그대로 동기화하여 파묻힘 방지
-            basePos.y = _player.PlayerBodyTransform.position.y;
+            basePos.y = PlayerBodyTransform.position.y;
         }
 
         if (_cameraTransform != null)
@@ -265,7 +266,7 @@ public class FirstPersonLegsController : MonoBehaviour
         transform.position = basePos - (transform.forward * bodyBack);
 
         // 4. 앉기(Crouch) 진행 비율 부드럽게 보간 (0: 서있음 ~ 1: 앉음)
-        bool isCrouching = _player != null && _player.PlayerMove != null && _player.PlayerMove.IsCrouching;
+        bool isCrouching = PlayerMove != null && PlayerMove.IsCrouching;
         _crouchRatio = Mathf.Lerp(_crouchRatio, isCrouching ? 1f : 0f, Time.deltaTime * 9f);
 
         float currentSpineBackward = GetEffectiveSpineBackwardOffset(_crouchRatio);

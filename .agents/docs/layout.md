@@ -27,6 +27,7 @@
 | 스크립트 경로 | 클래스명 | 역할 및 핵심 기능 |
 |---|---|---|
 | `Player/Player.cs` | `Player` | 플레이어 엔티티의 최상위 루트 클래스. `NetworkIdentity`를 보유하며, 이동/회전/입력/아이템/애니메이션 컴포넌트들을 총괄 관리. |
+| `Player/PlayerComponent.cs` | `PlayerComponent` | 플레이어 하위 모든 서브시스템 컴포넌트의 베이스 클래스. 부모 `Player` 엔티티 자동 지연 캐싱 및 하위 컴포넌트(`PlayerMove`, `PlayerAnimation`, `IsOwned` 등) 즉시 접근 프로퍼티 제공. |
 | `Player/LocalPlayerSetter.cs` | `LocalPlayerSetter` | 로컬 플레이어 여부(`isLocalPlayer`)에 따라 1인칭 카메라, 가상 리스너, 렌더러 레이어(1인칭/3인칭 분리)를 활성화/비활성화. |
 | `Player/Input/InputController.cs` | `InputController` | Unity 신규/레거시 입력 이벤트를 감지하여 이동/시선/상호작용 키 입력을 이벤트 및 프로퍼티로 브로드캐스팅. |
 | `Player/Interact/InteractiveRaycast.cs` | `InteractiveRaycast` | 카메라 정면 시선(Raycast)을 발사하여 상호작용 가능한 대상(`InteractableObject`, `Item`, `ItemVendingMachine` 등)을 검출하고 UI 및 상호작용 트리거. |
@@ -39,6 +40,9 @@
 | `Player/PlayerAnimation/IMovementAnimation.cs` | `IMovementAnimation` | 이동 애니메이션 상태 갱신을 위한 공용 인터페이스. |
 | `Player/PlayerAnimation/LookAtController.cs` | `LookAtController` | 3인칭 모델의 머리/상체가 카메라 시선 방향을 자연스럽게 바라보도록 하는 절차적 IK/LookAt 제어. |
 | `Player/PlayerAnimation/FirstPersonLegsController.cs` | `FirstPersonLegsController` | 1인칭 전용 다리(Legs) 제어 컴포넌트. 자식 Animator 및 본 자동 탐색, 팔/머리/목/어깨/손 본 (0,0,0) 강제 축소, 상체(Spine/Chest) 및 다리 루트 카메라 후방 오프셋/Pitch 비례 보정으로 시야 간섭 없는 완벽한 하체 렌더링 지원. |
+| `Player/PlayerAnimation/FirstPersonLegsSetup.cs` | `FirstPersonLegsSetup` | 1인칭 다리 모델 인스턴스화, 불필요 컴포넌트 정리 및 1인칭/3인칭 Foot IK 자동 연결을 전담하는 셋업 컴포넌트. |
+| `Player/PlayerAnimation/FirstPersonLegsSettings.cs` | `FirstPersonLegsSettings` | 1인칭 다리 및 상체 오프셋(서 있을 때/앉았을 때) 세팅 데이터 클래스. |
+| `Player/PlayerAnimation/FootIKController.cs` | `FootIKController` | 3인칭 바디 및 1인칭 다리에 적용되는 경사면/지형 대응 Foot IK 제어기. 양발 Raycast를 통한 지면 법선(Normal) 회전 정렬, 골반(Pelvis) 높이 자동 보정 및 체공/스윙 페이즈 블렌딩 제공. |
 
 ---
 
@@ -118,4 +122,5 @@
 |---|---|---|
 | `Editor/NetworkPrefabPostprocessor.cs` | `NetworkPrefabPostprocessor` | `Resources/Network/`에 프리팹 추가 시 자동으로 네트워크 매니저 등록 처리. |
 | `Editor/LobbySetupTool.cs` | `LobbySetupTool` | 로비 씬 자동 구성 및 바인딩 헬퍼 에디터 윈도우. |
+| `Editor/FootIKCurveGenerator.cs` | `FootIKCurveGenerator` | 애니메이션 클립을 분석하여 `LeftFootIK` / `RightFootIK` Float 커브를 100% 자동 생성/주입하는 에디터 유틸리티. |
 | `Editor/Toolbar/*` | `Toolbar*` | Unity 상단 툴바에 빠른 씬 전환, 플레이어 프리팹 선택 버튼을 추가하는 편의 툴. |

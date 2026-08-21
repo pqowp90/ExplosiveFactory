@@ -5,7 +5,7 @@ using Mirror;
 
 using UnityEngine;
 
-public class LookAtController : MonoBehaviour
+public class LookAtController : PlayerComponent
 {
     public Transform objectToLookAt;
     [Tooltip("머리 LookAt IK 회전 가중치 (0 = 애니메이션의 목/머리 모션 100% 반영)")]
@@ -29,7 +29,6 @@ public class LookAtController : MonoBehaviour
 
     private CustomNetworkAnimator _networkAnimator;
     private Animator _animator;
-    private Player _player;
     private Transform _spineTransform;
     private Transform _chestTransform;
     private Transform _neckTransform;
@@ -40,7 +39,6 @@ public class LookAtController : MonoBehaviour
 
     private void Start()
     {
-        _player = GetComponentInParent<Player>();
         _networkAnimator = GetComponent<CustomNetworkAnimator>();
         if (_networkAnimator != null) _animator = _networkAnimator.Animator;
         if (_animator == null) _animator = GetComponent<Animator>();
@@ -58,7 +56,7 @@ public class LookAtController : MonoBehaviour
 
     private void Update()
     {
-        if (!_player.PlayerAnimation.IsMoving)
+        if (PlayerAnimation != null && !PlayerAnimation.IsMoving)
         {
             if (Mathf.Abs(Mathf.DeltaAngle(_realRotation, transform.parent.eulerAngles.y)) > 60f)
             {
@@ -67,12 +65,12 @@ public class LookAtController : MonoBehaviour
             var deltaAngle = Mathf.DeltaAngle(_realRotation, _curRotation);
             if (Mathf.Abs(deltaAngle) < 3f)
             {
-                _player.PlayerAnimation.SetTurn(0);
+                PlayerAnimation.SetTurn(0);
                 _realRotation += deltaAngle * Time.deltaTime * 14f;
             }
             else
             {
-                _player.PlayerAnimation.SetTurn(deltaAngle < 0 ? -1 : 1);
+                PlayerAnimation.SetTurn(deltaAngle < 0 ? -1 : 1);
                 _realRotation += deltaAngle * Time.deltaTime * 7f;
             }
         }
@@ -85,8 +83,8 @@ public class LookAtController : MonoBehaviour
         transform.eulerAngles = new Vector3(0, _realRotation, 0);
 
         // 1인칭 로컬 플레이어일 때만 3인칭 몸체 모델(그림자)을 회전축 뒤로 오프셋
-        float bodyBack = (_player != null && _player.isOwned && _player.FirstPersonLegsSettings != null)
-            ? _player.FirstPersonLegsSettings.firstPersonBodyBackwardOffset
+        float bodyBack = (IsOwned && LegsSetup != null && LegsSetup.Settings != null)
+            ? LegsSetup.Settings.firstPersonBodyBackwardOffset
             : 0f;
         transform.localPosition = Quaternion.Euler(0, _realRotation - transform.parent.eulerAngles.y, 0) * new Vector3(0, 0, -bodyBack);
     }
@@ -96,7 +94,7 @@ public class LookAtController : MonoBehaviour
         // 0번(Base Layer)에서만 IK를 수행하여 레이어 중복 연산 방지
         if (layerIndex != 0) return;
 
-        bool isHolding = _player != null && _player.PlayerAnimation != null && _player.PlayerAnimation.IsHoldingItem;
+        bool isHolding = PlayerAnimation != null && PlayerAnimation.IsHoldingItem;
 
         if (_networkAnimator != null && objectToLookAt != null)
         {
@@ -124,19 +122,19 @@ public class LookAtController : MonoBehaviour
     private void LateUpdate()
     {
         // 1. 카메라 시선 Yaw와 몸체(다리) 실제 Yaw 계산
-        float cameraYaw = _player != null ? _player.transform.eulerAngles.y : transform.eulerAngles.y;
-        if (_player != null && _player.Camera != null)
+        float cameraYaw = Player != null ? Player.transform.eulerAngles.y : transform.eulerAngles.y;
+        if (Camera != null)
         {
-            cameraYaw = _player.Camera.transform.eulerAngles.y;
+            cameraYaw = Camera.transform.eulerAngles.y;
         }
         float bodyYaw = _realRotation;
         float deltaYaw = Mathf.DeltaAngle(bodyYaw, cameraYaw);
 
         // 2. 시선 타겟 / 카메라를 향한 상하 각도 (Pitch) 100% 선형 계산
         float fullPitch = 0f;
-        if (_player != null && _player.Camera != null)
+        if (Camera != null)
         {
-            float camPitch = _player.Camera.transform.eulerAngles.x;
+            float camPitch = Camera.transform.eulerAngles.x;
             if (camPitch > 180f) camPitch -= 360f;
             fullPitch = Mathf.Clamp(camPitch, -maxPitchAngle, maxPitchAngle);
         }
@@ -162,7 +160,7 @@ public class LookAtController : MonoBehaviour
             }
         }
 
-        bool isHolding = _player != null && _player.PlayerAnimation != null && _player.PlayerAnimation.IsHoldingItem;
+        bool isHolding = PlayerAnimation != null && PlayerAnimation.IsHoldingItem;
 
         if (isHolding)
         {

@@ -1,0 +1,70 @@
+using UnityEngine;
+
+/// <summary>
+/// 1인칭 다리 모델 인스턴스화 및 3인칭/1인칭 Foot IK 전담 셋업 컴포넌트.
+/// - PlayerComponent를 상속받아 부모 Player 엔티티에 직접 접근합니다.
+/// </summary>
+[DisallowMultipleComponent]
+public class FirstPersonLegsSetup : PlayerComponent
+{
+    [SerializeField]
+    private FirstPersonLegsSettings _settings = new FirstPersonLegsSettings();
+    public FirstPersonLegsSettings Settings => _settings;
+
+    private void Awake()
+    {
+        SetupLegs();
+        SetupBodyFootIK();
+    }
+
+    /// <summary>
+    /// 3인칭 몸체를 복제하여 1인칭 전용 다리(FirstPersonLegs)를 생성하고 초기화합니다.
+    /// </summary>
+    public void SetupLegs()
+    {
+        if (Player == null || Player.PlayerBodyTransform == null) return;
+        if (Player.PlayerLegTransform != null) return;
+
+        // 3인칭 몸체를 복제하여 1인칭 전용 다리 생성
+        GameObject legsObj = Instantiate(Player.PlayerBodyTransform.gameObject, transform);
+        legsObj.name = "FirstPersonLegs";
+
+        // 1인칭 다리에 불필요한 3인칭 컴포넌트 제거
+        var lookAt = legsObj.GetComponentInChildren<LookAtController>();
+        if (lookAt != null) Destroy(lookAt);
+
+        var netAnimator = legsObj.GetComponentInChildren<CustomNetworkAnimator>();
+        if (netAnimator != null) Destroy(netAnimator);
+
+        // 1인칭 다리 제어기 추가 및 설정 전달
+        var legsController = legsObj.GetComponent<FirstPersonLegsController>();
+        if (legsController == null)
+        {
+            legsController = legsObj.AddComponent<FirstPersonLegsController>();
+        }
+        legsController.settings = _settings;
+
+        // 1인칭 다리 Animator에 FootIKController 추가
+        var legAnimator = legsObj.GetComponentInChildren<Animator>();
+        if (legAnimator != null && legAnimator.GetComponent<FootIKController>() == null)
+        {
+            legAnimator.gameObject.AddComponent<FootIKController>();
+        }
+
+        Player.PlayerLegTransform = legsObj.transform;
+    }
+
+    /// <summary>
+    /// 3인칭 몸체 Animator에 FootIKController를 보장합니다.
+    /// </summary>
+    private void SetupBodyFootIK()
+    {
+        if (Player == null || Player.PlayerBodyTransform == null) return;
+
+        var bodyAnimator = Player.PlayerBodyTransform.GetComponentInChildren<Animator>();
+        if (bodyAnimator != null && bodyAnimator.GetComponent<FootIKController>() == null)
+        {
+            bodyAnimator.gameObject.AddComponent<FootIKController>();
+        }
+    }
+}

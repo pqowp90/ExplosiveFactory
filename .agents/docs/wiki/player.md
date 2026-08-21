@@ -7,15 +7,17 @@
 ## 1. 플레이어 오브젝트 계층 구조
 
 ```
-GamePlayer (NetworkIdentity, Player, LocalPlayerSetter)
+GamePlayer (NetworkIdentity, Player, LocalPlayerSetter, FirstPersonLegsSetup)
 ├── Rigidbody (Unity 6 Physics)
 ├── CapsuleCollider
 ├── FirstPersonView (로컬 플레이어만 활성화)
 │   ├── Main Camera (FPS 카메라, CameraShocShak, InteractiveRaycast)
 │   └── Arms_Root (1인칭 손 모델, SwayNBobScript, HoldSocket)
 │       └── HoldSocket (현재 들고 있는 Item 프리팹의 부모)
-└── ThirdPersonView (원격 플레이어에게만 렌더링, 그림자 전용)
-    └── BodyMesh (3인칭 캐릭터 모델, LookAtController, PlayerAnimation)
+├── ThirdPersonView (원격 플레이어에게만 렌더링, 그림자 전용)
+│   └── BodyMesh (3인칭 캐릭터 모델, LookAtController, PlayerAnimation, FootIKController)
+└── FirstPersonLegs (로컬 플레이어 전용 동적 생성 다리)
+    └── LegsMesh (FirstPersonLegsController, FootIKController)
 ```
 
 ---
@@ -83,4 +85,30 @@ GamePlayer (NetworkIdentity, Player, LocalPlayerSetter)
   - **카메라 피치(Pitch) 가변 보정:** 고개를 아래로 숙일수록(`Pitch > 0`) 상체를 카메라 뒤쪽으로 추가 당김(`pitchBackwardMultiplier: 0.18m`)으로써 고개를 최대로 숙여도 가슴/등이 카메라 시야를 뚫지 않고 다리와 발걸음만 깨끗하게 표시.
   - `PlayerAnimation.cs`를 통해 이동/점프/앉기/회전/앉기 애니메이션 파라미터 100% 동기화.
 
+---
 
+## 7. 경사면 및 지형 대응 Foot IK 시스템 (`FootIKController.cs`)
+
+- **Unity Humanoid Foot IK & OnAnimatorIK:**
+  - `Player.controller`의 Base Layer(`IK Pass: 1`)를 활용하여 매 프레임 `OnAnimatorIK`에서 양 발(`AvatarIKGoal.LeftFoot`, `AvatarIKGoal.RightFoot`)의 지면 접지 및 회전, 골반 높이를 절차적으로 보정합니다.
+- **지면 법선(Normal) 기반 발 회전 정렬:**
+  - 양 발의 위치에서 `Physics.Raycast`를 하향 발사하여 충돌 지면의 법선 벡터(`hit.normal`)를 검출하고, 경사각에 맞춰 발바닥을 자연스럽게 기울여 밀착(`Quaternion.FromToRotation(Vector3.up, hit.normal)`)시킵니다.
+- **골반(Pelvis / Hips) 높이 자동 하향 보정:**
+  - 경사로나 계단에서 한쪽 발이 낮은 곳을 딛을 때 다리가 굳거나 공중에 뜨지 않도록, 양 발 중 낮은 발의 오프셋(`min(leftDelta, rightDelta)`)에 맞춰 `animator.bodyPosition`을 부드럽게 내려줍니다.
+- **AAA 표준 애니메이션 커브 연동 (`LeftFootIK`, `RightFootIK`):**
+  - 애니메이션 클립마다 발이 땅을 딛는 구간(1.0)과 공중에 뜨는 스윙 구간(0.0)을 Float 커브로 정밀 제어하여, 달리기 시 발차기 모션을 온전히 보존하면서 착지 순간에만 경사면 IK가 찰싹 밀착되도록 합니다.
+  - 커브가 누락된 클립은 높이 기반 스마트 절차적 Fallback을 통해 100% 정상 작동합니다.
+  - `FootIKCurveGenerator.cs` 에디터 툴을 통해 클릭 한 번으로 모든 애니메이션 클립에 커브를 일괄 자동 생성 가능합니다.
+- **스윙 페이즈(Foot Swing) 및 체공 보호:**
+  - 보행/달리기 중 발이 위로 들리는 타이밍에는 원래 애니메이션 높이를 우선 적용하여 발이 땅에 질질 끌리지 않도록 보호하며, 점프나 체공(`!isGrounded`) 시에는 IK 가중치를 0으로 부드럽게 감쇄합니다.
+- **3인칭 및 1인칭 완벽 공유:**
+  - 3인칭 몸체(`PlayerBodyTransform`)와 1인칭 다리(`FirstPersonLegs`) 모두에 `FootIKController`가 자동 바인딩되어 동작합니다.
+
+---
+
+## 8. PlayerComponent 기반 아키텍처 (`PlayerComponent.cs`)
+
+- **지연 캐싱 (Lazy Caching):**
+  - 모든 플레이어 하위 컴포넌트(`FootIKController`, `FirstPersonLegsController`, `FirstPersonLegsSetup`, `LookAtController` 등)가 `PlayerComponent`를 상속받아, 런타임에 부모 `Player` 엔티티를 자동으로 지연 캐싱합니다.
+- **손쉬운 서브시스템 상호 참조:**
+  - `PlayerMove`, `PlayerRotate`, `PlayerAnimation`, `ItemHolder`, `InputController`, `LegsSetup`, `Camera`, `IsOwned` 등의 편의 프로퍼티를 즉시 제공하여 `GetComponent` 보일러플레이트와 NullReference 예외를 원천 방지합니다.
