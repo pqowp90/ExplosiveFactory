@@ -1,89 +1,142 @@
+#nullable enable
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Cysharp.Threading.Tasks;
+using ExplosiveFactory.Network;
 using Steamworks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[SingletonLifeTime(LifeTime.Scene)]
-public class SteamFriendsManager : MonoSingleton<SteamFriendsManager>
+namespace ExplosiveFactory.Network
 {
-    public RawImage pp;
-    public Text playerName;
-
-    public Transform friendsContent;
-    public GameObject friendObj;
-
-    private void Start()
+    [SingletonLifeTime(LifeTime.Application)]
+    public class SteamFriendsManager : MonoSingleton<SteamFriendsManager>
     {
-        if (!SteamClient.IsValid) return;
-        if (friendsContent != null)
-            InitFriendsAsync(friendsContent, playerName, pp);
-    }
+        private GameObject? _popupRoot;
+        private Transform? _contentContainer;
+        private GameObject? _itemTemplate;
+        private readonly List<GameObject> _spawnedItems = new();
+        private readonly Dictionary<ulong, Texture2D> _avatarCache = new();
 
-    public static Texture2D GetTextureFromImage(Steamworks.Data.Image image)
-    {
-        Texture2D texture = new Texture2D((int)image.Width, (int)image.Height);
-
-        for (int x = 0; x < image.Width; x++)
+        protected override void Awake()
         {
-            for (int y = 0; y < image.Height; y++)
-            {
-                var p = image.GetPixel(x, y);
-                texture.SetPixel(x, (int)image.Height - y, new Color(p.r / 255.0f, p.g / 255.0f, p.b / 255.0f, p.a / 255.0f));
-            }
+            base.Awake();
         }
-        texture.Apply();
-        return texture;
-    }
 
-    public async void InitFriendsAsync(Transform friendsContent, Text playerName, RawImage pp)
-    {
-        if (!SteamClient.IsValid) return;
-
-        try
+        protected override void OnDestroy()
         {
-            var img = await SteamFriends.GetLargeAvatarAsync(SteamClient.SteamId);
-            if (img.HasValue && pp != null)
-                pp.texture = GetTextureFromImage(img.Value);
-
-            if (playerName != null)
-                playerName.text = SteamClient.Name;
-
-            if (friendsContent != null && friendObj != null)
+            base.OnDestroy();
+            foreach (var kvp in _avatarCache)
             {
-                foreach (var friend in SteamFriends.GetFriends())
+                if (kvp.Value != null)
                 {
-                    GameObject f = PoolManager.Get(friendObj, friendsContent);
-                    var txt = f.GetComponentInChildren<Text>();
-                    if (txt != null) txt.text = friend.Name;
-
-                    var fo = f.GetComponent<FriendObject>();
-                    if (fo != null) fo.steamId = friend.Id;
-
-                    AssignFriendImage(f, friend.Id);
+                    Destroy(kvp.Value);
                 }
             }
-            Debug.Log("Friends initialized");
+            _avatarCache.Clear();
         }
-        catch (System.Exception ex)
-        {
-            Debug.LogWarning($"[SteamFriendsManager] InitFriendsAsync error: {ex.Message}");
-        }
-    }
 
-    public async void AssignFriendImage(GameObject f, SteamId id)
-    {
-        try
+        public static Texture2D GetTextureFromImage(Steamworks.Data.Image image)
         {
-            var img = await SteamFriends.GetLargeAvatarAsync(id);
-            if (img.HasValue && f != null)
+            Texture2D texture = new Texture2D((int)image.Width, (int)image.Height, TextureFormat.RGBA32, false);
+
+            for (int x = 0; x < image.Width; x++)
             {
-                var rawImg = f.GetComponentInChildren<RawImage>();
-                if (rawImg != null)
-                    rawImg.texture = GetTextureFromImage(img.Value);
+                for (int y = 0; y < image.Height; y++)
+                {
+                    var p = image.GetPixel(x, y);
+                    texture.SetPixel(x, (int)image.Height - 1 - y, new Color(p.r / 255.0f, p.g / 255.0f, p.b / 255.0f, p.a / 255.0f));
+                }
+            }
+            texture.Apply();
+            return texture;
+        }
+
+        public void PopulateFriends(Transform container, GameObject templatePrefab)
+        {
+            if (!SteamClient.IsValid || container == null || templatePrefab == null) return;
+
+            // Clear old children
+            foreach (Transform child in container)
+            {
+                Destroy(child.gameObject);
+            }
+
+            try
+            {
+                var friends = SteamFriends.GetFriends().ToList();
+                friends.Sort((a, b) =>
+                {
+                    int scoreA = a.IsPlayingThisGame ? 3 : (a.IsOnline ? 2 : 1);
+                    int scoreB = b.IsPlayingThisGame ? 3 : (b.IsOnline ? 2 : 1);
+                    return scoreB.CompareTo(scoreA);
+                });
+
+                foreach (var friend in friends)
+                {
+                    var item = Instantiate(templatePrefab, container);
+                    item.SetActive(true);
+
+                    var fo = item.GetComponent<FriendObject>() ?? item.GetComponentInChildren<FriendObject>();
+                    if (fo != null)
+                    {
+                        fo.Setup(friend.Id, friend.Name);
+                    }
+
+                    var nameText = item.transform.Find("NameText")?.GetComponent<TextMeshProUGUI>()
+                                ?? item.GetComponentInChildren<TextMeshProUGUI>();
+                    if (nameText != null)
+                    {
+                        string statusTag = friend.IsPlayingThisGame
+                            ? "<color=#00FF88>[인게임]</color> "
+                            : (friend.IsOnline ? "<color=#55AAFF>[온라인]</color> " : "<color=#888888>[오프라인]</color> ");
+                        nameText.text = $"{statusTag}{friend.Name}";
+                    }
+
+                    AssignAvatarAsync(item, friend.Id).Forget();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[SteamFriendsManager] PopulateFriends error: {ex.Message}");
             }
         }
-        catch (System.Exception ex)
+
+
+
+        private async UniTaskVoid AssignAvatarAsync(GameObject item, SteamId id)
         {
-            Debug.LogWarning($"[SteamFriendsManager] AssignFriendImage error: {ex.Message}");
+            if (item == null) return;
+            try
+            {
+                if (_avatarCache.TryGetValue(id.Value, out var cachedTex) && cachedTex != null)
+                {
+                    var raw = item.GetComponentInChildren<RawImage>();
+                    if (raw != null)
+                    {
+                        raw.texture = cachedTex;
+                    }
+                    return;
+                }
+
+                var img = await SteamFriends.GetLargeAvatarAsync(id);
+                if (img.HasValue && item != null)
+                {
+                    var tex = GetTextureFromImage(img.Value);
+                    _avatarCache[id.Value] = tex;
+                    var raw = item.GetComponentInChildren<RawImage>();
+                    if (raw != null)
+                    {
+                        raw.texture = tex;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Ignored
+            }
         }
     }
 }

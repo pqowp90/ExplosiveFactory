@@ -1,3 +1,4 @@
+﻿#nullable enable
 using System;
 using Mirror;
 using Steamworks;
@@ -20,7 +21,7 @@ namespace ExplosiveFactory.Network
         [SyncVar(hook = nameof(OnHostStatusChanged))]
         public bool isHost;
 
-        public static LobbyPlayer LocalPlayer { get; private set; }
+        public static LobbyPlayer? LocalPlayer { get; private set; }
 
         public event Action<string>? OnNameUpdated;
         public event Action<ulong>? OnSteamIdUpdated;
@@ -71,6 +72,10 @@ namespace ExplosiveFactory.Network
         {
             playerName = newName;
             steamId = newSteamId;
+            if (connectionToClient != null)
+            {
+                CustomNetworkManager.singleton?.CachePlayerInfo(connectionToClient.connectionId, newName, newSteamId);
+            }
         }
 
         [Command]

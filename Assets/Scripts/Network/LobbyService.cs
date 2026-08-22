@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using Cysharp.Threading.Tasks;
 using Steamworks;
@@ -8,7 +9,7 @@ namespace ExplosiveFactory.Network
 {
     public class LobbyService : MonoBehaviour
     {
-        public static LobbyService Instance { get; private set; }
+        public static LobbyService Instance { get; private set; } = null!;
 
         public const string HostSteamIdKey = "HostSteamId";
         public const string GameVersionKey = "GameVersion";
@@ -164,6 +165,8 @@ namespace ExplosiveFactory.Network
             }
         }
 
+        public event Action<string>? OnLobbyIdCopiedEvent;
+
         public void OpenInviteOverlay()
         {
             if (!CurrentLobby.HasValue)
@@ -172,16 +175,21 @@ namespace ExplosiveFactory.Network
                 return;
             }
 
-            GUIUtility.systemCopyBuffer = CurrentLobby.Value.Id.ToString();
-            Debug.Log($"[LobbyService] Lobby ID copied to clipboard: {CurrentLobby.Value.Id}");
+            string lobbyIdStr = CurrentLobby.Value.Id.ToString();
+            GUIUtility.systemCopyBuffer = lobbyIdStr;
+            Debug.Log($"[LobbyService] Lobby ID copied to clipboard: {lobbyIdStr}");
+            OnLobbyIdCopiedEvent?.Invoke(lobbyIdStr);
 
             try
             {
-                SteamFriends.OpenGameInviteOverlay(CurrentLobby.Value.Id);
+                if (SteamClient.IsValid)
+                {
+                    SteamFriends.OpenGameInviteOverlay(CurrentLobby.Value.Id);
+                }
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[LobbyService] Failed to open Steam invite overlay (Overlay may be disabled in editor): {ex.Message}");
+                Debug.LogWarning($"[LobbyService] Failed to open Steam invite overlay: {ex.Message}");
             }
         }
 
@@ -233,7 +241,14 @@ namespace ExplosiveFactory.Network
         private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
         {
             Debug.Log($"[LobbyService] Join requested from friend ({friendId}) for lobby: {lobby.Id}");
-            JoinLobbyAsync(lobby.Id).Forget();
+            if (CustomNetworkManager.singleton != null)
+            {
+                CustomNetworkManager.singleton.JoinLobby(lobby.Id);
+            }
+            else
+            {
+                JoinLobbyAsync(lobby.Id).Forget();
+            }
         }
 
         #endregion

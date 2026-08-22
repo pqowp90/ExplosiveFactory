@@ -216,7 +216,7 @@ namespace ExplosiveFactory.Editor
             var title = CreateText(bg.transform, "TitleText", "EXPLOSIVE FACTORY", 54, new Vector2(0, 140), new Vector2(700, 90));
             title.fontStyle = FontStyles.Bold;
 
-            var hostBtn = CreateButton(bg.transform, "HostButton", "방 만들기 (Host)", new Vector2(0, -20), new Vector2(320, 65));
+            var hostBtn = CreateButton(bg.transform, "HostButton", "방 만들기", new Vector2(0, -20), new Vector2(320, 65));
             var quitBtn = CreateButton(bg.transform, "QuitButton", "게임 종료", new Vector2(0, -100), new Vector2(320, 65));
 
             var verText = CreateText(bg.transform, "VersionText", "v0.0.0.1", 18, new Vector2(0, -350), new Vector2(400, 40));

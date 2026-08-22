@@ -1382,15 +1382,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _settings:
-    firstPersonBodyBackwardOffset: 0.27
-    spineBackwardOffset: 0.03
+    firstPersonBodyBackwardOffset: 0.19
+    spineBackwardOffset: 0.08
     spineUpwardOffset: 0.1
-    chestBackwardOffset: 0.03
+    chestBackwardOffset: 0.08
     chestUpwardOffset: 0.1
     upperChestBackwardOffset: 0
-    crouchSpineBackwardOffset: 0.06
+    crouchSpineBackwardOffset: 0.11
     crouchSpineUpwardOffset: 0.1
-    crouchChestBackwardOffset: 0.06
+    crouchChestBackwardOffset: 0.11
     crouchChestUpwardOffset: 0.1
     crouchUpperChestBackwardOffset: 0
 --- !u!1 &4200834464797830281
@@ -3644,16 +3644,23 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 39
+  useAnimationCurves: 1
+  leftFootCurveName: LeftFootIK
+  rightFootCurveName: RightFootIK
   raycastStartHeight: 0.4
   raycastLength: 0.9
   footBottomOffset: 0.108
   footForwardOffset: 0.05
   enableFootRotation: 1
   maxSlopeAngle: 60
-  footPlacementSpeed: 18
+  enablePelvisCorrection: 1
+  slopePelvisDrop: 0.12
   pelvisCorrectionSpeed: 14
   maxPelvisDrop: 0.4
   maxPelvisRise: 0.4
+  footPlacementSpeed: 18
+  runningSpeedMultiplier: 1.8
+  forwardPredictionDistance: 0
 --- !u!4 &5728590349757595581 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 80e454c2c4355f64f89d8c7479184da1, type: 3}

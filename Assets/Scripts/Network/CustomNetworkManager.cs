@@ -1,3 +1,4 @@
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace ExplosiveFactory.Network
 {
     public class CustomNetworkManager : NetworkManager
     {
-        public static new CustomNetworkManager singleton => NetworkManager.singleton as CustomNetworkManager;
+        public static new CustomNetworkManager singleton => (NetworkManager.singleton as CustomNetworkManager)!;
 
         [Header("Scene Configuration")]
         [Scene] [SerializeField] private string mainMenuSceneName = "MainMenuScene";
@@ -30,6 +31,7 @@ namespace ExplosiveFactory.Network
         public GameObject GamePlayerPrefab => gamePlayerPrefab;
 
         public readonly List<LobbyPlayer> RoomPlayers = new();
+        private readonly Dictionary<int, (string Name, ulong SteamId)> _playerInfoCache = new();
 
         public event Action<LobbyPlayer>? OnPlayerJoined;
         public event Action<LobbyPlayer>? OnPlayerLeft;
@@ -38,6 +40,12 @@ namespace ExplosiveFactory.Network
         public void NotifyPlayerListUpdated()
         {
             OnPlayerListUpdated?.Invoke();
+        }
+
+        public void CachePlayerInfo(int connectionId, string pName, ulong sId)
+        {
+            _playerInfoCache[connectionId] = (pName, sId);
+            Debug.Log($"[CustomNetworkManager] Cached player info: connId={connectionId}, name={pName}, steamId={sId}");
         }
 
         public override void Awake()
@@ -148,16 +156,46 @@ namespace ExplosiveFactory.Network
             bool success = await LobbyService.Instance.JoinLobbyAsync(lobbyId);
             if (success && LobbyService.Instance.CurrentLobby.HasValue)
             {
-                string hostSteamId = LobbyService.Instance.CurrentLobby.Value.GetData(LobbyService.HostSteamIdKey);
+                var lobby = LobbyService.Instance.CurrentLobby.Value;
+                string hostSteamId = lobby.GetData(LobbyService.HostSteamIdKey);
+
                 if (string.IsNullOrEmpty(hostSteamId))
                 {
-                    Debug.LogError("[CustomNetworkManager] HostSteamId not found in lobby metadata.");
+                    // Fallback to lobby owner ID if metadata hasn't synced yet
+                    var ownerId = lobby.Owner.Id;
+                    if (ownerId.Value != 0)
+                    {
+                        hostSteamId = ownerId.ToString();
+                        Debug.Log($"[CustomNetworkManager] HostSteamId not in metadata, using Owner.Id fallback: {hostSteamId}");
+                    }
+                    else
+                    {
+                        Debug.LogError("[CustomNetworkManager] HostSteamId not found in lobby metadata or owner.");
+                        return;
+                    }
+                }
+
+                if (SteamClient.IsValid && SteamClient.SteamId.ToString() == hostSteamId)
+                {
+                    Debug.LogWarning("[CustomNetworkManager] You are the lobby host. Cannot join self as client.");
                     return;
                 }
 
                 networkAddress = hostSteamId;
                 StartClient();
                 Debug.Log($"[CustomNetworkManager] Connecting to host: {hostSteamId}");
+            }
+        }
+
+        public void JoinLobbyByIdString(string lobbyIdString)
+        {
+            if (ulong.TryParse(lobbyIdString.Trim(), out ulong id))
+            {
+                JoinLobby((SteamId)id);
+            }
+            else
+            {
+                Debug.LogError($"[CustomNetworkManager] Invalid lobby ID format: {lobbyIdString}");
             }
         }
 
@@ -337,7 +375,13 @@ namespace ExplosiveFactory.Network
 
             string pName = "Player";
             ulong sId = 0;
-            if (conn.identity != null && conn.identity.TryGetComponent<LobbyPlayer>(out var lobbyPlayer))
+
+            if (_playerInfoCache.TryGetValue(conn.connectionId, out var cachedInfo))
+            {
+                pName = cachedInfo.Name;
+                sId = cachedInfo.SteamId;
+            }
+            else if (conn.identity != null && conn.identity.TryGetComponent<LobbyPlayer>(out var lobbyPlayer))
             {
                 pName = lobbyPlayer.playerName;
                 sId = lobbyPlayer.steamId;
@@ -368,6 +412,7 @@ namespace ExplosiveFactory.Network
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
+            _playerInfoCache.Remove(conn.connectionId);
             base.OnServerDisconnect(conn);
             OnPlayerListUpdated?.Invoke();
         }
@@ -376,6 +421,7 @@ namespace ExplosiveFactory.Network
         {
             base.OnClientDisconnect();
             RoomPlayers.Clear();
+            _playerInfoCache.Clear();
             OnPlayerListUpdated?.Invoke();
 
             if (SceneManager.GetActiveScene().name != mainMenuSceneName)
@@ -388,6 +434,7 @@ namespace ExplosiveFactory.Network
         {
             base.OnStopHost();
             RoomPlayers.Clear();
+            _playerInfoCache.Clear();
 
             if (SceneManager.GetActiveScene().name != mainMenuSceneName)
             {

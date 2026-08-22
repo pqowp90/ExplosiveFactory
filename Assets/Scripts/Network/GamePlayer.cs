@@ -1,4 +1,4 @@
-using Mirror;
+﻿using Mirror;
 using TMPro;
 using UnityEngine;
 
@@ -14,12 +14,12 @@ namespace ExplosiveFactory.Network
         public ulong steamId;
 
         [Header("References")]
-        [SerializeField] private TextMeshPro? nameText;
-        [SerializeField] private Camera? playerCamera;
+        [SerializeField] private TextMeshPro nameText;
+        [SerializeField] private Camera playerCamera;
 
         public static GamePlayer LocalPlayer { get; private set; }
 
-        private PlayerMove? _playerMove;
+        private PlayerMove _playerMove;
 
         private void Awake()
         {

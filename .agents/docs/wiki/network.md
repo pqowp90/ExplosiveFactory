@@ -34,12 +34,19 @@
 ## 3. 로비 및 씬 전환 흐름
 
 1. **메인 메뉴 (`MainMenuScene`):**
-   - 호스트가 방 만들기 클릭 → `LobbyService`가 Steam P2P 로비 생성 → `CustomNetworkManager.StartHost()` 호출.
-   - 클라이언트가 초대 수락 또는 로비 목록 클릭 → `CustomNetworkManager.StartClient()`로 접속.
+   - **호스트:** '방 만들기' 클릭 → `LobbyService.CreateLobbyAsync`로 Steam P2P 로비 생성 → `CustomNetworkManager.StartHost()` 호출 후 `LobbyScene`으로 이동.
+   - **클라이언트 참가 경로:**
+     - **스팀 초대 / 친구 참가:** Steam 오버레이 또는 알림에서 수락 시 `SteamFriends.OnGameLobbyJoinRequested` ➔ `CustomNetworkManager.singleton.JoinLobby(lobbyId)`가 트리거되어 Steam 로비 입장 및 P2P 호스트 주소(`hostSteamId`)로 `StartClient()` 즉시 연결.
+     - **로비 ID 직접 참가:** 클립보드에 복사된 로비 ID 또는 입력 필드로 `CustomNetworkManager.singleton.JoinLobbyByIdString` 호출.
+     - **호스트 Steam ID 폴백:** 메타데이터(`HostSteamId`)가 동기화 지연 시 `lobby.Owner.Id`를 즉시 안전한 폴백으로 참조.
 2. **로비 대기실 (`LobbyScene`):**
-   - 플레이어 입장 시 `LobbyPlayer` 프리팹 스폰.
-   - 각 플레이어는 준비(`Ready`) 토글 및 방장의 게임 시작(`StartGame`) 트리거.
+   - 플레이어 입장 시 `LobbyPlayer` 프리팹 스폰 및 `CustomNetworkManager.CachePlayerInfo`로 연결 ID별 메타데이터(이름, SteamId) 캐싱.
+   - 각 플레이어는 준비(`Ready`) 토글, 방장은 모든 참가자 준비 완료 시 게임 시작(`StartGame`) 트리거.
+   - **'초대하기' 버튼 클릭 시:**
+     - 인게임 **Steam 친구 목록 팝업 모달(`SteamFriendsManager`)**이 화면에 오픈되어 각 친구의 프로필 아바타/닉네임 옆 **[초대]** 버튼으로 원클릭 초대 발송.
+     - 동시에 팝업 상단의 **[📋 로비 ID 복사]** 버튼을 통해 디스코드/카톡용 코드로도 언제든 복사 및 전달 가능.
 3. **인게임 (`GameScene`):**
    - 서버가 `ServerChangeScene("GameScene")` 호출.
-   - 씬 로드 완료 시 `LobbyPlayer`를 `GamePlayer` 프리팹으로 교체 스폰.
+   - 각 클라이언트 씬 로드 완료(`OnServerReady`) 시, 서버의 캐시된 플레이어 정보를 기반으로 `GamePlayer` 프리팹을 스폰하고 `ReplacePlayerForConnection`을 통해 완벽하게 바인딩.
    - 서버가 게임 내 필수 인터랙션 시설(`ItemVendingMachine` 등)을 `NetworkPoolManager.Get`을 통해 동적 스폰.
+

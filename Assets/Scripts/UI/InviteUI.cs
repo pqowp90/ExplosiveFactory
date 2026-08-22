@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using ExplosiveFactory.Network;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,15 +11,10 @@ public class InviteUI : MonoBehaviour
     public Text playerName;
     public Transform friendsContent;
 
-
     public void InitFriendUI()
     {
         if (!SteamClient.IsValid) return;
-        foreach (Transform child in friendsContent)
-        {
-            PoolManager.Release(child.gameObject);
-        }
-        SteamFriendsManager.Instance.InitFriendsAsync(friendsContent, playerName, pp);
+        LobbyService.Instance?.OpenInviteOverlay();
     }
 
     private void Start()

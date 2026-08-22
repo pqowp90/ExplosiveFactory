@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -8,21 +9,31 @@ namespace ExplosiveFactory.Network.UI
     public class LobbyUI : MonoBehaviour
     {
         [Header("Controls")]
-        [SerializeField] private Button inviteButton = null!;
         [SerializeField] private Button readyButton = null!;
         [SerializeField] private TextMeshProUGUI readyButtonText = null!;
         [SerializeField] private Button startButton = null!;
         [SerializeField] private Button leaveButton = null!;
+        [SerializeField] private Button inviteButton = null!;
         [SerializeField] private TextMeshProUGUI lobbyTitleText = null!;
 
         [Header("Player List")]
         [SerializeField] private Transform playerListContainer = null!;
         [SerializeField] private GameObject playerEntryPrefab = null!;
 
+        [Header("Friends Popup (Scene UI)")]
+        [SerializeField] private GameObject? friendsPopupPanel;
+        [SerializeField] private Transform? friendsContent;
+        [SerializeField] private GameObject? friendItemPrefab;
+        [SerializeField] private Button? closeFriendsPopupButton;
+        [SerializeField] private Button? copyLobbyIdButton;
+        [Header("Toast / Feedback")]
+        [SerializeField] private TextMeshProUGUI? inviteToastText;
+
         private readonly List<GameObject> _spawnedEntries = new();
         private int _lastPlayerCount = -1;
         private bool _lastIsHost;
         private bool _lastIsReady;
+        private Coroutine? _toastCoroutine;
 
         private void Start()
         {
@@ -31,9 +42,27 @@ namespace ExplosiveFactory.Network.UI
             if (startButton != null) startButton.onClick.AddListener(OnClickStartGame);
             if (leaveButton != null) leaveButton.onClick.AddListener(OnClickLeave);
 
+            if (closeFriendsPopupButton != null) closeFriendsPopupButton.onClick.AddListener(CloseFriendsPopup);
+            if (copyLobbyIdButton != null) copyLobbyIdButton.onClick.AddListener(() => LobbyService.Instance?.OpenInviteOverlay());
+
+            if (friendsPopupPanel != null)
+            {
+                friendsPopupPanel.SetActive(false);
+            }
+
             if (CustomNetworkManager.singleton != null)
             {
                 CustomNetworkManager.singleton.OnPlayerListUpdated += RefreshLobbyUI;
+            }
+
+            if (LobbyService.Instance != null)
+            {
+                LobbyService.Instance.OnLobbyIdCopiedEvent += HandleLobbyIdCopied;
+            }
+
+            if (inviteToastText != null)
+            {
+                inviteToastText.gameObject.SetActive(false);
             }
 
             RefreshLobbyUI();
@@ -65,11 +94,66 @@ namespace ExplosiveFactory.Network.UI
             {
                 CustomNetworkManager.singleton.OnPlayerListUpdated -= RefreshLobbyUI;
             }
+
+            if (LobbyService.Instance != null)
+            {
+                LobbyService.Instance.OnLobbyIdCopiedEvent -= HandleLobbyIdCopied;
+            }
         }
 
         private void OnClickInvite()
         {
-            LobbyService.Instance?.OpenInviteOverlay();
+            if (LobbyService.Instance != null)
+            {
+                LobbyService.Instance.OpenInviteOverlay();
+            }
+
+            if (friendsPopupPanel != null)
+            {
+                friendsPopupPanel.SetActive(true);
+                if (friendsContent != null && friendItemPrefab != null && SteamFriendsManager.Instance != null)
+                {
+                    SteamFriendsManager.Instance.PopulateFriends(friendsContent, friendItemPrefab);
+                }
+            }
+        }
+
+        public void CloseFriendsPopup()
+        {
+            if (friendsPopupPanel != null)
+            {
+                friendsPopupPanel.SetActive(false);
+            }
+        }
+
+        private void HandleLobbyIdCopied(string lobbyId)
+        {
+            if (inviteToastText != null)
+            {
+                ShowToast($"로비 ID가 복사되었습니다!\n<color=#FFFF00>[{lobbyId}]</color> 친구에게 붙여넣기하세요!");
+            }
+        }
+
+        private void ShowToast(string message)
+        {
+            if (inviteToastText == null) return;
+
+            if (_toastCoroutine != null)
+            {
+                StopCoroutine(_toastCoroutine);
+            }
+            _toastCoroutine = StartCoroutine(ToastRoutine(message));
+        }
+
+        private System.Collections.IEnumerator ToastRoutine(string message)
+        {
+            if (inviteToastText != null)
+            {
+                inviteToastText.text = message;
+                inviteToastText.gameObject.SetActive(true);
+                yield return new WaitForSeconds(3.5f);
+                inviteToastText.gameObject.SetActive(false);
+            }
         }
 
         private void OnClickReady()
