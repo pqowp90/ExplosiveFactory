@@ -73,6 +73,11 @@ public class FootIKController : PlayerComponent
     [Tooltip("이동 방향 전방 레이캐스트 예측 거리 (단위: m, 기본 0.12m)")]
     public float forwardPredictionDistance = 0.12f;
 
+    private static readonly int GroundedHash = Animator.StringToHash("Grounded");
+    private static readonly int RunHash = Animator.StringToHash("Run");
+    private static readonly int MoveXHash = Animator.StringToHash("MoveX");
+    private static readonly int MoveYHash = Animator.StringToHash("MoveY");
+
     private Animator _animator;
     private Transform _hipsTransform;
     private int _leftCurveHash;
@@ -177,8 +182,24 @@ public class FootIKController : PlayerComponent
             if (!_isInitialized) return;
         }
 
-        // 지면에 닿아 있는지 확인 (PlayerMove.isGrounded)
-        bool isGrounded = PlayerMove != null ? PlayerMove.isGrounded : true;
+        // 지면에 닿아 있는지 확인:
+        // 네트워크 동기화된 Animator 파라미터(Grounded)를 우선 확인하여 원격 3인칭 플레이어에서도 정확히 접지 판정
+        bool isGrounded = true;
+        if (_animator != null)
+        {
+            try
+            {
+                isGrounded = _animator.GetBool(GroundedHash);
+            }
+            catch
+            {
+                isGrounded = PlayerMove != null ? PlayerMove.isGrounded : true;
+            }
+        }
+        else if (PlayerMove != null)
+        {
+            isGrounded = PlayerMove.isGrounded;
+        }
 
         // 공중에 떠 있거나 점프 중일 때는 IK 가중치와 오프셋을 0으로 부드럽게 복귀
         if (!isGrounded)
@@ -203,7 +224,40 @@ public class FootIKController : PlayerComponent
 
         // 이동/달리기 상태에 따른 동적 반응 속도 계산
         float dynamicSpeed = footPlacementSpeed;
-        if (PlayerMove != null)
+        if (_animator != null)
+        {
+            try
+            {
+                float runVal = _animator.GetFloat(RunHash);
+                float moveX = _animator.GetFloat(MoveXHash);
+                float moveY = _animator.GetFloat(MoveYHash);
+                float moveSqr = (moveX * moveX) + (moveY * moveY);
+
+                if (runVal > 0.5f)
+                {
+                    dynamicSpeed *= runningSpeedMultiplier;
+                }
+                else if (moveSqr > 0.01f)
+                {
+                    dynamicSpeed *= Mathf.Lerp(1.0f, runningSpeedMultiplier, 0.5f);
+                }
+            }
+            catch
+            {
+                if (PlayerMove != null)
+                {
+                    if (PlayerMove.IsRunning)
+                    {
+                        dynamicSpeed *= runningSpeedMultiplier;
+                    }
+                    else if (PlayerMove.MoveValue.sqrMagnitude > 0.01f)
+                    {
+                        dynamicSpeed *= Mathf.Lerp(1.0f, runningSpeedMultiplier, 0.5f);
+                    }
+                }
+            }
+        }
+        else if (PlayerMove != null)
         {
             if (PlayerMove.IsRunning)
             {
