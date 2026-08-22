@@ -52,7 +52,7 @@
 |---|---|---|
 | `Item/Item.cs` | `Item` | 네트워크 상에 존재하는 모든 아이템의 기본 베이스 클래스 (`NetworkBehaviour`). 바닥 상태(`Grounded`), 파지 상태(`Held`), 투척 상태(`Thrown`) 라이프사이클 관리. |
 | `Item/ItemHolder.cs` | `ItemHolder` | 플레이어가 보유한 3개 인벤토리 슬롯 및 손에 쥔 아이템을 관리. 마우스 휠 슬롯 전환, 우클릭 아이템 사용, `F` 줍기, `G` 버리기 처리. |
-| `Item/ItemManager.cs` | `ItemDataManager` | `Resources/ItemData/` 경로의 `ItemData` 에셋을 로드하고 관리하는 싱글톤 (`MonoSingleton<ItemDataManager>`). ID 기반 아이템 메타데이터 조회 지원. |
+| `Item/ItemDataManager.cs` | `ItemDataManager` | `Resources/ItemData/` 경로의 `ItemData` 에셋을 로드하고 관리하는 싱글톤 (`MonoSingleton<ItemDataManager>`). ID 기반 아이템 메타데이터 조회 지원. |
 | `Item/ItemVendingMachine.cs` | `ItemVendingMachine` | 인게임 아이템 구매/뽑기 자판기 오브젝트. 서버에서 인터랙션 요청을 검증하고 `NetworkPoolManager`를 통해 아이템 배출. |
 | `Item/ItemEventBehaviour.cs` | `ItemEventBehaviour` | 아이템의 주움, 버림, 사용 이벤트에 반응하는 베이스 컴포넌트. |
 | `Item/HandyItemObject.cs` | `HandyItemObject` | 손에 쥐었을 때 특정 기능을 발동하는 기능성 핸디 아이템의 기본 클래스. |
