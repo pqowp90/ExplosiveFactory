@@ -24,13 +24,21 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     private Animator _legAnimator;
     private AnimationTriggerEventHolder _animationTriggerEventHolder;
     private Player _player;
+    private RuntimeAnimatorController _defaultHandController;
+    private RuntimeAnimatorController _defaultBodyController;
     public SwayNBobScript SwayNBobScript;
 
     private void Awake()
     {
         _player = GetComponent<Player>();
         if (_player != null && _player.PlayerBodyTransform != null)
+        {
             _bodyCustomNetworkAnimator = _player.PlayerBodyTransform.GetComponentInChildren<CustomNetworkAnimator>();
+            if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
+            {
+                _defaultBodyController = _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController;
+            }
+        }
         if (_player != null && _player.PlayerLegTransform != null)
         {
             _legAnimator = _player.PlayerLegTransform.GetComponentInChildren<Animator>();
@@ -44,6 +52,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             _handAnimator = _player.PlayerHandTransform.GetComponent<Animator>();
             if (_handAnimator != null)
             {
+                _defaultHandController = _handAnimator.runtimeAnimatorController;
                 _handAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 _animationTriggerEventHolder = _handAnimator.GetComponent<AnimationTriggerEventHolder>();
                 if (_animationTriggerEventHolder != null)
@@ -136,7 +145,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         if (_legAnimator != null)
             _legAnimator.SetFloat(IMovementAnimation.Run, _HandRun);
 
-        if (_handAnimator != null)
+        if (isOwned && _handAnimator != null)
         {
             _handAnimator.SetLayerWeight(1, _isHoldingItem ? 1f : 0f);
             _handAnimator.SetBool(HoldItemHash, _isHoldingItem);
@@ -303,6 +312,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     [ClientRpc]
     private void RpcSetHoldingItem(bool holdingItem)
     {
+        if (isOwned) return;
         _isHoldingItem = holdingItem;
     }
     public void SetAnimatorController(HandyItemObject handyItemObject)
@@ -317,18 +327,38 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
 
     public void SetAnimatorController(RuntimeAnimatorController handController = null, RuntimeAnimatorController bodyController = null)
     {
-        if (isOwned && handController != null && _handAnimator != null)
+        if (isOwned && _handAnimator != null)
         {
-            _handAnimator.runtimeAnimatorController = handController;
+            var targetHandController = handController != null ? handController : _defaultHandController;
+            if (targetHandController != null && _handAnimator.runtimeAnimatorController != targetHandController)
+            {
+                _handAnimator.runtimeAnimatorController = targetHandController;
+            }
+            if (handController != null)
+            {
+                _handAnimator.SetTrigger(EquipHash);
+            }
+            else
+            {
+                _handAnimator.SetTrigger(UnequalHash);
+            }
         }
-        else if (bodyController != null && _bodyCustomNetworkAnimator != null)
-        {
-            _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController = bodyController;
-        }
-        if (_handAnimator != null) _handAnimator.SetTrigger(EquipHash);
+
         if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
         {
-            _bodyCustomNetworkAnimator.Animator.SetTrigger(EquipHash);
+            var targetBodyController = bodyController != null ? bodyController : _defaultBodyController;
+            if (targetBodyController != null && _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController != targetBodyController)
+            {
+                _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController = targetBodyController;
+            }
+            if (bodyController != null)
+            {
+                _bodyCustomNetworkAnimator.Animator.SetTrigger(EquipHash);
+            }
+            else
+            {
+                _bodyCustomNetworkAnimator.Animator.SetTrigger(UnequalHash);
+            }
         }
     }
     public void SetTurn(int v)
