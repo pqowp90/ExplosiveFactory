@@ -91,14 +91,21 @@ GamePlayer (NetworkIdentity, Player, LocalPlayerSetter, FirstPersonLegsSetup)
 
 - **Unity Humanoid Foot IK & OnAnimatorIK:**
   - `Player.controller`의 Base Layer(`IK Pass: 1`)를 활용하여 매 프레임 `OnAnimatorIK`에서 양 발(`AvatarIKGoal.LeftFoot`, `AvatarIKGoal.RightFoot`)의 지면 접지 및 회전, 골반 높이를 절차적으로 보정합니다.
+- **Y축 높이 오프셋 독립 보간 (X/Z 수평 지연 100% 제거):**
+  - 발의 수평 위치(X, Z)는 애니메이션 원본을 실시간 100% 즉시 추종하고, 보정이 필요한 Y축 높이 오프셋(`_leftFootOffsetY`, `_rightFootOffsetY`)과 회전만 기민하게 보간함으로써 고속 달리기 시 발이 뒤로 밀리거나 처지는 지연(Lag)을 원천 차단합니다.
+- **달리기/이동 적응형 동적 반응 속도 (Speed-Adaptive Responsiveness):**
+  - 보행/달리기 상태(`PlayerMove.IsRunning` 또는 이동 속도)에 따라 보간 속도를 동적으로 증폭(`runningSpeedMultiplier: 1.8x`)하고, 이동 방향 전방 예측(`forwardPredictionDistance`)을 통해 고속 질주 중에도 스텝 템포에 맞춰 즉시 지면에 착 달라붙도록 반응성을 극대화합니다.
 - **지면 법선(Normal) 기반 발 회전 정렬:**
   - 양 발의 위치에서 `Physics.Raycast`를 하향 발사하여 충돌 지면의 법선 벡터(`hit.normal`)를 검출하고, 경사각에 맞춰 발바닥을 자연스럽게 기울여 밀착(`Quaternion.FromToRotation(Vector3.up, hit.normal)`)시킵니다.
-- **골반(Pelvis / Hips) 높이 자동 하향 보정:**
-  - 경사로나 계단에서 한쪽 발이 낮은 곳을 딛을 때 다리가 굳거나 공중에 뜨지 않도록, 양 발 중 낮은 발의 오프셋(`min(leftDelta, rightDelta)`)에 맞춰 `animator.bodyPosition`을 부드럽게 내려줍니다.
+- **골반(Hips 본) 기준 레이캐스트 기반 몸체/골반 높이 제어 (Hips-Raycast Pelvis Control):**
+  - 캐릭터 모델의 실제 골반 본(`HumanBodyBones.Hips`) 위치(X, Z)에서 수직 하향으로 발사되는 단일 레이캐스트(청록색 기즈모)를 통해 지면 단차를 측정하고 몸체(`animator.bodyPosition`) 높이를 안정적으로 보정합니다.
+  - **경사면 적응형 골반 하강 (Slope Pelvis Drop):** 경사면의 각도(`slopeAngle`)에 비례하여 몸체를 부드럽게 추가 하강(`slopePelvisDrop: 0.12m`)시킴으로써, 경사로에서 다리가 굳지 않고 자연스럽게 무릎을 굽혀 무게중심을 낮추는 인체 역학적 자세를 완성합니다.
+  - 레이캐스트 발사 시작 높이를 실제 바닥 기준선(`baseGroundY + 0.55m`)으로 통일하여, 서 있을 때 과도하게 높이 뜨지 않고 앉았을 때도 동일한 무릎 높이에서 안정적으로 지면을 감지합니다.
+- **양발 독립 접지 및 경사면 회전 (Independent Feet IK):**
+  - 양 발은 중앙 지면에 맞춘 몸체를 바탕으로 각자의 바닥에 착 달라붙고 경사면 법선(Normal) 각도에 맞게 회전합니다.
 - **AAA 표준 애니메이션 커브 연동 (`LeftFootIK`, `RightFootIK`):**
-  - 애니메이션 클립마다 발이 땅을 딛는 구간(1.0)과 공중에 뜨는 스윙 구간(0.0)을 Float 커브로 정밀 제어하여, 달리기 시 발차기 모션을 온전히 보존하면서 착지 순간에만 경사면 IK가 찰싹 밀착되도록 합니다.
-  - 커브가 누락된 클립은 높이 기반 스마트 절차적 Fallback을 통해 100% 정상 작동합니다.
-  - `FootIKCurveGenerator.cs` 에디터 툴을 통해 클릭 한 번으로 모든 애니메이션 클립에 커브를 일괄 자동 생성 가능합니다.
+  - 애니메이션 클립마다 발이 땅을 딛는 구간(1.0)과 공중에 뜨는 스윙 구간(0.0)을 Float 커브로 정밀 제어하여, 제자리 회전(Turn)이나 달리기 시 발을 들어 올리는 모션을 온전히 보존하면서 착지 순간에만 경사면 IK가 찰싹 밀착되도록 합니다.
+  - 커브가 누락된 클립은 높이 기반 스마트 절차적 Fallback을 통해 정상 작동합니다.
 - **스윙 페이즈(Foot Swing) 및 체공 보호:**
   - 보행/달리기 중 발이 위로 들리는 타이밍에는 원래 애니메이션 높이를 우선 적용하여 발이 땅에 질질 끌리지 않도록 보호하며, 점프나 체공(`!isGrounded`) 시에는 IK 가중치를 0으로 부드럽게 감쇄합니다.
 - **3인칭 및 1인칭 완벽 공유:**
