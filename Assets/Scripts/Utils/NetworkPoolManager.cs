@@ -119,7 +119,7 @@ public partial class NetworkPoolManager : NetworkSingleton<NetworkPoolManager>
             if (p != null && p.TryGetComponent<NetworkIdentity>(out var netId))
             {
                 NetWorkPrefabs.Add(netId);
-                if (NetworkClient.active && !NetworkClient.prefabs.ContainsKey(netId.assetId))
+                if (!NetworkClient.prefabs.ContainsKey(netId.assetId))
                 {
                     NetworkClient.RegisterPrefab(p, SpawnHandler, UnSpawnHandler);
                 }
