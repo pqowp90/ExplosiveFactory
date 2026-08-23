@@ -31,13 +31,25 @@ public class FirstPersonLegsSetup : PlayerComponent
 
         // 1인칭 다리에 불필요한 3인칭 컴포넌트 및 포워더 제거
         var lookAt = legsObj.GetComponentInChildren<LookAtController>();
-        if (lookAt != null) Destroy(lookAt);
+        if (lookAt != null)
+        {
+            if (Application.isPlaying) Destroy(lookAt);
+            else DestroyImmediate(lookAt);
+        }
 
         var netAnimator = legsObj.GetComponentInChildren<CustomNetworkAnimator>();
-        if (netAnimator != null) Destroy(netAnimator);
+        if (netAnimator != null)
+        {
+            if (Application.isPlaying) Destroy(netAnimator);
+            else DestroyImmediate(netAnimator);
+        }
 
         var ikForwarder = legsObj.GetComponentInChildren<AnimatorIKForwarder>();
-        if (ikForwarder != null) Destroy(ikForwarder);
+        if (ikForwarder != null)
+        {
+            if (Application.isPlaying) Destroy(ikForwarder);
+            else DestroyImmediate(ikForwarder);
+        }
 
         // 1인칭 다리 제어기 추가 및 설정 전달
         var legsController = legsObj.GetComponent<FirstPersonLegsController>();
@@ -55,6 +67,28 @@ public class FirstPersonLegsSetup : PlayerComponent
         }
 
         Player.PlayerLegTransform = legsObj.transform;
+    }
+
+    /// <summary>
+    /// 기존 1인칭 다리를 파괴하고 현재 3인칭 몸체를 기반으로 1인칭 다리를 재생성합니다.
+    /// </summary>
+    public void RecreateLegs()
+    {
+        if (Player != null && Player.PlayerLegTransform != null)
+        {
+            GameObject oldLegs = Player.PlayerLegTransform.gameObject;
+            Player.PlayerLegTransform = null;
+            if (Application.isPlaying)
+            {
+                Destroy(oldLegs);
+            }
+            else
+            {
+                DestroyImmediate(oldLegs);
+            }
+        }
+
+        SetupLegs();
     }
 
     /// <summary>

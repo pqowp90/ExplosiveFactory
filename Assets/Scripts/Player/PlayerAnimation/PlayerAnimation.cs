@@ -107,6 +107,26 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
             _defaultBodyController = _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController;
         }
     }
+
+    /// <summary>
+    /// 모델링 교체 시 새 1인칭 다리의 Animator를 재바인딩합니다.
+    /// </summary>
+    public void RebindLegAnimator()
+    {
+        if (_player == null) _player = GetComponent<Player>();
+        if (_player != null && _player.PlayerLegTransform != null)
+        {
+            _legAnimator = _player.PlayerLegTransform.GetComponentInChildren<Animator>();
+            if (_legAnimator != null)
+            {
+                _legAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            }
+        }
+        else
+        {
+            _legAnimator = null;
+        }
+    }
     [Command(requiresAuthority = false)]
     private void CmdTriggerEvent(int triggerID)
     {

@@ -57,6 +57,23 @@ public class LocalPlayerSetter : NetworkBehaviour
         }
     }
 
+    public void RefreshLegRenderers()
+    {
+        if (_player == null) _player = GetComponent<Player>();
+        if (_player != null && _player.PlayerLegTransform != null)
+        {
+            if (isOwned)
+            {
+                SetRenderersNoShadow(_player.PlayerLegTransform);
+            }
+            else
+            {
+                SetRenderersActive(_player.PlayerLegTransform, false);
+                _player.PlayerLegTransform.gameObject.SetActive(false);
+            }
+        }
+    }
+
     private void SetRenderersShadowOnly(Transform target, bool shadowOnly)
     {
         if (target == null) return;

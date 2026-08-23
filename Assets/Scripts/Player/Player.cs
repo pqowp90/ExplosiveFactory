@@ -109,15 +109,22 @@ public class Player : NetworkBehaviour, IPoolable
             FootIKController.RebindModel(newAnimator);
         }
 
+        if (LegsSetup != null)
+        {
+            LegsSetup.RecreateLegs();
+        }
+
         if (PlayerAnimation != null)
         {
             PlayerAnimation.RebindBodyAnimator(CustomNetworkAnimator);
+            PlayerAnimation.RebindLegAnimator();
         }
 
         var setter = GetComponent<LocalPlayerSetter>();
         if (setter != null)
         {
             setter.RefreshBodyRenderers();
+            setter.RefreshLegRenderers();
         }
     }
 

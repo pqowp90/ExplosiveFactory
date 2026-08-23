@@ -144,12 +144,15 @@ public class FirstPersonLegsController : PlayerComponent
         foreach (var t in allTransforms)
         {
             string lower = t.name.ToLower();
+            if (lower.Contains("armature") || lower.Contains("root")) continue;
+
             if (lower.Contains("head") || lower.Contains("neck") || 
-                lower.Contains("shoulder") || lower.Contains("arm") || 
+                lower.Contains("shoulder") || (lower.Contains("arm") && !lower.Contains("armature")) || 
                 lower.Contains("forearm") || lower.Contains("hand"))
             {
-                // 다리(Leg), 발(Foot, Toe) 제외
-                if (!lower.Contains("leg") && !lower.Contains("foot") && !lower.Contains("toe") && !lower.Contains("hips") && !lower.Contains("spine") && !lower.Contains("chest"))
+                // 다리(Leg), 발(Foot, Toe), 골반/허리 제외
+                if (!lower.Contains("leg") && !lower.Contains("foot") && !lower.Contains("toe") && 
+                    !lower.Contains("hips") && !lower.Contains("pelvis") && !lower.Contains("spine") && !lower.Contains("chest"))
                 {
                     AddHiddenBone(t);
                 }
@@ -165,15 +168,36 @@ public class FirstPersonLegsController : PlayerComponent
                 _hipsTransform = t;
         }
 
+        // 다리의 모든 SkinnedMeshRenderer가 화면 밖에서도 컬링되지 않도록 보장
+        var skinnedMeshRenderers = GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        foreach (var smr in skinnedMeshRenderers)
+        {
+            smr.updateWhenOffscreen = true;
+        }
+
         _isInitialized = true;
     }
 
     private void AddHiddenBone(Transform bone)
     {
-        if (bone != null && !_hiddenBones.Contains(bone))
+        if (bone == null || _hiddenBones.Contains(bone)) return;
+
+        // 루트/컨테이너 본(Armature, Root), 골반/허리(Hips, Pelvis, Spine), 다리/발(Leg, Foot, Toe) 보호
+        if (bone == transform || (_animator != null && bone == _animator.transform)) return;
+        if (_hipsTransform != null && bone == _hipsTransform) return;
+        if (_spineTransform != null && bone == _spineTransform) return;
+
+        string lower = bone.name.ToLower();
+        if (lower.Contains("armature") || lower.Contains("root") ||
+            lower.Contains("hips") || lower.Contains("pelvis") ||
+            lower.Contains("spine") || lower.Contains("chest") ||
+            lower.Contains("leg") || lower.Contains("foot") || lower.Contains("toe") || 
+            lower.Contains("thigh") || lower.Contains("calf"))
         {
-            _hiddenBones.Add(bone);
+            return;
         }
+
+        _hiddenBones.Add(bone);
     }
 
     private void LateUpdate()

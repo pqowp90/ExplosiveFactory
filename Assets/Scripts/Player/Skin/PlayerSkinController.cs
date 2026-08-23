@@ -127,11 +127,12 @@ public class PlayerSkinController : NetworkBehaviour
         {
             Player.SetPlayerBody(bodyTransform);
 
-            // 5. 로컬 플레이어 시야에서 3인칭 몸체 숨김(그림자 전용) 갱신
+            // 5. 로컬 플레이어 시야에서 3인칭 몸체 숨김(그림자 전용) 및 1인칭 다리 렌더러 갱신
             var setter = Player.GetComponent<LocalPlayerSetter>();
             if (setter != null)
             {
                 setter.RefreshBodyRenderers();
+                setter.RefreshLegRenderers();
             }
         }
 
