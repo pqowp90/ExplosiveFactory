@@ -46,6 +46,23 @@ public class Item : InteractableObject, IPoolable
     {
         base.OnStartClient();
         ApplyPickupVisualAndPhysics(_isPickedUp);
+        CmdRequestItemState();
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdRequestItemState(NetworkConnectionToClient? conn = null)
+    {
+        if (conn != null)
+        {
+            TargetSyncItemState(conn, _isPickedUp);
+        }
+    }
+
+    [TargetRpc]
+    private void TargetSyncItemState(NetworkConnection target, bool isPickedUp)
+    {
+        _isPickedUp = isPickedUp;
+        ApplyPickupVisualAndPhysics(isPickedUp);
     }
 
     private void ApplyPickupVisualAndPhysics(bool pickedUp)

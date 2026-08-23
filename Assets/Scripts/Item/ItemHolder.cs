@@ -54,16 +54,43 @@ public class ItemHolder : NetworkBehaviour
         }
     }
 
-    public override void OnStartLocalPlayer()
-    {
-        base.OnStartLocalPlayer();
-    }
-
     public override void OnStartClient()
     {
         base.OnStartClient();
         EnsureHoldingItemsCapacity();
         UpdateHandyObject();
+        CmdRequestHolderState();
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdRequestHolderState(NetworkConnectionToClient? conn = null)
+    {
+        if (conn != null)
+        {
+            EnsureHoldingItemsCapacity();
+            TargetSyncHolderState(conn, _currentHandyItemIndex, _holdingItems.ToArray());
+        }
+    }
+
+    [TargetRpc]
+    private void TargetSyncHolderState(NetworkConnection target, int currentIndex, Item?[] items)
+    {
+        _currentHandyItemIndex = currentIndex;
+        _holdingItems.Clear();
+        if (items != null)
+        {
+            _holdingItems.AddRange(items);
+        }
+        EnsureHoldingItemsCapacity();
+
+        UpdateHandyObject();
+        OnCurrentSlotChanged?.Invoke(currentIndex);
+        OnAllSlotsUpdated?.Invoke();
+
+        if (_player != null && _player.PlayerAnimation != null)
+        {
+            _player.PlayerAnimation.SetHoldingItem(HoldingItem != null);
+        }
     }
 
     public event Action<int>? OnCurrentSlotChanged;

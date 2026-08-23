@@ -47,6 +47,10 @@
      - 동시에 팝업 상단의 **[📋 로비 ID 복사]** 버튼을 통해 디스코드/카톡용 코드로도 언제든 복사 및 전달 가능.
 3. **인게임 (`GameScene`):**
    - 서버가 `ServerChangeScene("GameScene")` 호출.
-   - 각 클라이언트 씬 로드 완료(`OnServerReady`) 시, 서버의 캐시된 플레이어 정보를 기반으로 `GamePlayer` 프리팹을 스폰하고 `ReplacePlayerForConnection`을 통해 완벽하게 바인딩.
+   - 각 클라이언트 씬 로드 완료(`OnServerReady`) 시, 서버의 캐시된 플레이어 정보를 기반으로 `GamePlayer` 프리팹을 스폰하고 `ReplacePlayerForConnection`을 통해 바인딩.
    - 서버가 게임 내 필수 인터랙션 시설(`ItemVendingMachine` 등)을 `NetworkPoolManager.Get`을 통해 동적 스폰.
+4. **동적 난입 (Late Join) 파이프라인 (순수 RPC 요청-응답 패턴):**
+   - 게임 진행 중(`GameScene`) 새로 접속한 클라이언트는 `OnServerReady`에서 즉시 `GamePlayer`를 스폰받아 인게임에 직접 참여.
+   - `Item.cs` 및 `ItemHolder.cs`는 `OnStartClient()` 시 서버에 `CmdRequestItemState` / `CmdRequestHolderState`를 호출하여 `TargetRpc`로 현재 월드 상태(픽업 여부, 슬롯 목록, 쥔 아이템)를 1:1로 전달받아 즉시 동기화.
+   - 실시간 조작 및 상호작용은 `[Command] ➔ [ClientRpc]`를 통해 딜레이 없이 즉시 브로드캐스팅.
 

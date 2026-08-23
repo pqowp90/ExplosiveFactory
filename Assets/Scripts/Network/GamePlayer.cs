@@ -1,4 +1,4 @@
-﻿using Mirror;
+using Mirror;
 using TMPro;
 using UnityEngine;
 
@@ -49,6 +49,27 @@ namespace ExplosiveFactory.Network
             base.OnStartLocalPlayer();
             LocalPlayer = this;
             if (nameText != null) nameText.gameObject.SetActive(false);
+
+            string myName = Steamworks.SteamClient.IsValid ? Steamworks.SteamClient.Name : "Player";
+            ulong myId = Steamworks.SteamClient.IsValid ? Steamworks.SteamClient.SteamId.Value : 0;
+            CmdSetPlayerInfo(myName, myId);
+        }
+
+        [Command]
+        private void CmdSetPlayerInfo(string pName, ulong sId)
+        {
+            playerName = pName;
+            steamId = sId;
+            gameObject.name = $"GamePlayer_{pName} [connId={connectionToClient.connectionId}]";
+            RpcUpdatePlayerInfo(pName, sId);
+        }
+
+        [ClientRpc]
+        private void RpcUpdatePlayerInfo(string pName, ulong sId)
+        {
+            playerName = pName;
+            steamId = sId;
+            UpdateNameVisual(pName);
         }
 
         public override void OnStopClient()
