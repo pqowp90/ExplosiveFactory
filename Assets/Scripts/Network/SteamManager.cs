@@ -102,16 +102,55 @@ namespace ExplosiveFactory.Network
 
         private void OnApplicationQuit()
         {
-            ShutdownSteam();
+            StopMirrorNetwork();
+        }
+
+        private void StopMirrorNetwork()
+        {
+            try
+            {
+                if (Mirror.NetworkManager.singleton != null && Mirror.NetworkManager.singleton.isNetworkActive)
+                {
+                    Debug.Log("[SteamManager] Stopping Mirror NetworkManager before Steam Shutdown...");
+                    if (Mirror.NetworkManager.singleton.mode == Mirror.NetworkManagerMode.Host)
+                    {
+                        Mirror.NetworkManager.singleton.StopHost();
+                    }
+                    else if (Mirror.NetworkManager.singleton.mode == Mirror.NetworkManagerMode.ClientOnly)
+                    {
+                        Mirror.NetworkManager.singleton.StopClient();
+                    }
+                    else if (Mirror.NetworkManager.singleton.mode == Mirror.NetworkManagerMode.ServerOnly)
+                    {
+                        Mirror.NetworkManager.singleton.StopServer();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[SteamManager] Exception while stopping NetworkManager: {ex.Message}");
+            }
         }
 
         private void ShutdownSteam()
         {
             if (IsInitialized)
             {
-                SteamClient.Shutdown();
-                IsInitialized = false;
-                Debug.Log("[SteamManager] Steam shutdown complete.");
+                StopMirrorNetwork();
+
+                try
+                {
+                    SteamClient.Shutdown();
+                    Debug.Log("[SteamManager] Steam shutdown complete.");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[SteamManager] Exception during SteamClient.Shutdown: {ex.Message}");
+                }
+                finally
+                {
+                    IsInitialized = false;
+                }
             }
         }
     }
