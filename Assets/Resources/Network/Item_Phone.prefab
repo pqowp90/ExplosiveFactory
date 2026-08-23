@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &1884679642479980569
 GameObject:
@@ -72,7 +72,7 @@ MonoBehaviour:
   RendererObject: {fileID: 3541108628148925857}
   outlineColor: {r: 1, g: 0.92, b: 0.016, a: 1}
   outlineWidth: 2.5
-  HandyItemObjectPrefab: {fileID: -7933151372052597661, guid: e1a22a872fb6e0840b7a659578835516, type: 3}
+  HandyItemObjectPrefab: {fileID: 7933151372052597661, guid: e1a22a872fb6e0840b7a659578835516, type: 3}
   _itemData: {fileID: 11400000, guid: f2222222222222222222222222222222, type: 2}
   HandyItemObject: {fileID: 0}
 --- !u!114 &228412751084831728
