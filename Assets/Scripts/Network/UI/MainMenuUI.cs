@@ -20,6 +20,9 @@ namespace ExplosiveFactory.Network.UI
         [SerializeField] private Button? confirmJoinButton;
         [SerializeField] private Button? cancelButton;
         [SerializeField] private Button? closeJoinPopupButton;
+        [SerializeField] private Button? refreshFriendsButton;
+        [SerializeField] private Transform? friendsContent;
+        [SerializeField] private GameObject? friendItemPrefab;
 
         [Header("Texts")]
         [SerializeField] private TextMeshProUGUI versionText = null!;
@@ -110,15 +113,18 @@ namespace ExplosiveFactory.Network.UI
                 var pt = joinPopupPanel.transform;
                 if (lobbyIdInputField == null) lobbyIdInputField = pt.Find("WindowPanel/InputRow/LobbyIdInputField")?.GetComponent<TMP_InputField>();
                 if (pasteButton == null) pasteButton = pt.Find("WindowPanel/InputRow/PasteButton")?.GetComponent<Button>();
-                if (confirmJoinButton == null) confirmJoinButton = pt.Find("WindowPanel/ButtonRow/ConfirmJoinButton")?.GetComponent<Button>();
+                if (confirmJoinButton == null) confirmJoinButton = pt.Find("WindowPanel/InputRow/ConfirmJoinButton")?.GetComponent<Button>() ?? pt.Find("WindowPanel/ButtonRow/ConfirmJoinButton")?.GetComponent<Button>();
                 if (cancelButton == null) cancelButton = pt.Find("WindowPanel/ButtonRow/CancelButton")?.GetComponent<Button>();
                 if (closeJoinPopupButton == null) closeJoinPopupButton = pt.Find("WindowPanel/Header/CloseButton")?.GetComponent<Button>();
+                if (refreshFriendsButton == null) refreshFriendsButton = pt.Find("WindowPanel/Header/RefreshFriendsButton")?.GetComponent<Button>();
+                if (friendsContent == null) friendsContent = pt.Find("WindowPanel/FriendsScrollView/Viewport/Content");
             }
 
             if (pasteButton != null) { pasteButton.onClick.RemoveAllListeners(); pasteButton.onClick.AddListener(OnClickPaste); }
             if (confirmJoinButton != null) { confirmJoinButton.onClick.RemoveAllListeners(); confirmJoinButton.onClick.AddListener(OnClickConfirmJoin); }
             if (cancelButton != null) { cancelButton.onClick.RemoveAllListeners(); cancelButton.onClick.AddListener(CloseJoinPopup); }
             if (closeJoinPopupButton != null) { closeJoinPopupButton.onClick.RemoveAllListeners(); closeJoinPopupButton.onClick.AddListener(CloseJoinPopup); }
+            if (refreshFriendsButton != null) { refreshFriendsButton.onClick.RemoveAllListeners(); refreshFriendsButton.onClick.AddListener(RefreshFriendsList); }
         }
 
         public void OpenJoinPopup()
@@ -149,10 +155,20 @@ namespace ExplosiveFactory.Network.UI
                     lobbyIdInputField.Select();
                     lobbyIdInputField.ActivateInputField();
                 }
+
+                RefreshFriendsList();
             }
             else
             {
                 Debug.LogError("[MainMenuUI] Cannot open JoinPopup: joinPopupPanel is null!");
+            }
+        }
+
+        public void RefreshFriendsList()
+        {
+            if (friendsContent != null && friendItemPrefab != null && SteamFriendsManager.Instance != null)
+            {
+                SteamFriendsManager.Instance.PopulateFriends(friendsContent, friendItemPrefab, FriendObjectMode.Join);
             }
         }
 

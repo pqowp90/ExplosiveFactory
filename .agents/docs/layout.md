@@ -73,10 +73,10 @@
 | `Network/LobbyPlayer.cs` | `LobbyPlayer` | 대기방(로비) 씬에서 사용되는 플레이어 엔티티. 준비 상태, 방장 권한 관리. |
 | `Network/LobbyService.cs` | `LobbyService` | Steam Matchmaking API를 래핑하여 Steam 로비 생성, 검색, 참가, 데이터 동기화 수행. |
 | `Network/SteamManager.cs` | `SteamManager` | Steamworks.NET 초기화, 콜백 디스패치 및 라이프사이클 관리 싱글톤. |
-| `Network/SteamFriendsManager.cs` | `SteamFriendsManager` | 스팀 친구 목록 조회, 상태 확인, 인게임 초대 UI 연동. |
-| `Network/FriendObject.cs` | `FriendObject` | 친구 초대 UI 목록의 각 개별 친구 엔트리 UI 프리팹 제어. |
-| `Network/UI/MainMenuUI.cs` | `MainMenuUI` | 메인 메뉴 화면 UI (방 만들기, 방 찾기, 설정, 나가기). |
-| `Network/UI/LobbyUI.cs` | `LobbyUI` | 로비 화면 UI (참가자 명단, 준비/시작 버튼, 친구 초대 팝업). |
+| `Network/SteamFriendsManager.cs` | `SteamFriendsManager` | 스팀 친구 목록 조회, 상태/로비 확인, 친구 초대/참가 UI 바인딩 싱글톤. |
+| `Network/FriendObject.cs` | `FriendObject` | 친구 목록의 개별 항목 UI. 초대(Invite) 및 원클릭 방 참가(Join) 다형성 모드 지원. |
+| `Network/UI/MainMenuUI.cs` | `MainMenuUI` | 메인 메뉴 화면 UI (방 만들기, 방 참가 모달 팝업, 친구 방 목록 원클릭 참가, 새로고침, 나가기). |
+| `Network/UI/LobbyUI.cs` | `LobbyUI` | 로비 화면 UI (참가자 명단, 준비/시작 버튼, 친구 초대 팝업 및 새로고침). |
 
 ---
 

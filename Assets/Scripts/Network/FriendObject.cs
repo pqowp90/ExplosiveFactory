@@ -7,10 +7,18 @@ using UnityEngine.UI;
 
 namespace ExplosiveFactory.Network
 {
+    public enum FriendObjectMode
+    {
+        Invite,
+        Join
+    }
+
     public class FriendObject : MonoBehaviour
     {
         public SteamId steamId;
         public string friendName = "";
+        public SteamId? targetLobbyId;
+        public FriendObjectMode mode = FriendObjectMode.Invite;
 
         [SerializeField] private Button? inviteBtn;
         [SerializeField] private TextMeshProUGUI? inviteBtnText;
@@ -21,24 +29,71 @@ namespace ExplosiveFactory.Network
         {
             if (inviteBtn == null) inviteBtn = GetComponentInChildren<Button>();
             if (inviteBtnText == null && inviteBtn != null) inviteBtnText = inviteBtn.GetComponentInChildren<TextMeshProUGUI>();
-            if (inviteBtn != null) inviteBtn.onClick.AddListener(Invite);
+            if (inviteBtn != null) inviteBtn.onClick.AddListener(OnClickAction);
         }
 
-        public void Setup(SteamId id, string name)
+        public void Setup(SteamId id, string name, FriendObjectMode objectMode = FriendObjectMode.Invite, SteamId? lobbyId = null)
         {
             steamId = id;
             friendName = name;
+            mode = objectMode;
+            targetLobbyId = lobbyId;
             _isInvited = false;
 
-            if (inviteBtnText != null)
+            if (mode == FriendObjectMode.Invite)
             {
-                inviteBtnText.text = "초대";
+                if (inviteBtnText != null)
+                {
+                    inviteBtnText.text = "초대";
+                }
+                if (inviteBtn != null)
+                {
+                    inviteBtn.interactable = true;
+                    var img = inviteBtn.GetComponent<Image>();
+                    if (img != null) img.color = new Color(0.2f, 0.5f, 0.9f, 1f);
+                }
             }
-            if (inviteBtn != null)
+            else // Join Mode
             {
-                inviteBtn.interactable = true;
-                var img = inviteBtn.GetComponent<Image>();
-                if (img != null) img.color = new Color(0.2f, 0.5f, 0.9f, 1f);
+                bool canJoin = targetLobbyId.HasValue && targetLobbyId.Value.IsValid;
+                if (inviteBtnText != null)
+                {
+                    inviteBtnText.text = canJoin ? "참가" : "대기 중";
+                }
+                if (inviteBtn != null)
+                {
+                    inviteBtn.interactable = canJoin;
+                    var img = inviteBtn.GetComponent<Image>();
+                    if (img != null)
+                    {
+                        img.color = canJoin ? new Color(0.1f, 0.7f, 0.35f, 1f) : new Color(0.35f, 0.38f, 0.45f, 0.6f);
+                    }
+                }
+            }
+        }
+
+        private void OnClickAction()
+        {
+            if (mode == FriendObjectMode.Invite)
+            {
+                Invite();
+            }
+            else
+            {
+                JoinFriendLobby();
+            }
+        }
+
+        public void JoinFriendLobby()
+        {
+            if (targetLobbyId.HasValue && targetLobbyId.Value.IsValid)
+            {
+                Debug.Log($"[FriendObject] Joining friend {friendName}'s lobby: {targetLobbyId.Value}");
+                CustomNetworkManager.singleton?.JoinLobbyByIdString(targetLobbyId.Value.ToString());
+            }
+            else
+            {
+                Debug.LogWarning($"[FriendObject] Cannot join {friendName}: no valid lobby ID found.");
             }
         }
 

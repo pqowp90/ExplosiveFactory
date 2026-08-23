@@ -54,7 +54,7 @@ namespace ExplosiveFactory.Network
             return texture;
         }
 
-        public void PopulateFriends(Transform container, GameObject templatePrefab)
+        public void PopulateFriends(Transform container, GameObject templatePrefab, FriendObjectMode mode = FriendObjectMode.Invite)
         {
             if (!SteamClient.IsValid || container == null || templatePrefab == null) return;
 
@@ -69,6 +69,13 @@ namespace ExplosiveFactory.Network
                 var friends = SteamFriends.GetFriends().ToList();
                 friends.Sort((a, b) =>
                 {
+                    if (mode == FriendObjectMode.Join)
+                    {
+                        bool aHasLobby = a.IsPlayingThisGame && a.GameInfo.HasValue && a.GameInfo.Value.LobbyId.IsValid;
+                        bool bHasLobby = b.IsPlayingThisGame && b.GameInfo.HasValue && b.GameInfo.Value.LobbyId.IsValid;
+                        if (aHasLobby != bHasLobby) return bHasLobby.CompareTo(aHasLobby);
+                    }
+
                     int scoreA = a.IsPlayingThisGame ? 3 : (a.IsOnline ? 2 : 1);
                     int scoreB = b.IsPlayingThisGame ? 3 : (b.IsOnline ? 2 : 1);
                     return scoreB.CompareTo(scoreA);
@@ -79,19 +86,33 @@ namespace ExplosiveFactory.Network
                     var item = Instantiate(templatePrefab, container);
                     item.SetActive(true);
 
+                    SteamId? lobbyId = null;
+                    if (friend.GameInfo.HasValue && friend.GameInfo.Value.LobbyId.IsValid)
+                    {
+                        lobbyId = friend.GameInfo.Value.LobbyId;
+                    }
+
                     var fo = item.GetComponent<FriendObject>() ?? item.GetComponentInChildren<FriendObject>();
                     if (fo != null)
                     {
-                        fo.Setup(friend.Id, friend.Name);
+                        fo.Setup(friend.Id, friend.Name, mode, lobbyId);
                     }
 
                     var nameText = item.transform.Find("NameText")?.GetComponent<TextMeshProUGUI>()
                                 ?? item.GetComponentInChildren<TextMeshProUGUI>();
                     if (nameText != null)
                     {
-                        string statusTag = friend.IsPlayingThisGame
-                            ? "<color=#00FF88>[인게임]</color> "
-                            : (friend.IsOnline ? "<color=#55AAFF>[온라인]</color> " : "<color=#888888>[오프라인]</color> ");
+                        string statusTag;
+                        if (friend.IsPlayingThisGame)
+                        {
+                            statusTag = (lobbyId.HasValue && lobbyId.Value.IsValid)
+                                ? "<color=#00FF88>[로비 접속 중]</color> "
+                                : "<color=#00FFAA>[인게임]</color> ";
+                        }
+                        else
+                        {
+                            statusTag = friend.IsOnline ? "<color=#55AAFF>[온라인]</color> " : "<color=#888888>[오프라인]</color> ";
+                        }
                         nameText.text = $"{statusTag}{friend.Name}";
                     }
 

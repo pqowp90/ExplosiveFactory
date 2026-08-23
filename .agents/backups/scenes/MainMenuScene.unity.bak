@@ -1047,14 +1047,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ExplosiveFactory.Scripts::ExplosiveFactory.Network.UI.MainMenuUI
   hostButton: {fileID: 87568939}
-  joinButton: {fileID: 0}
+  joinButton: {fileID: 1900000204}
   quitButton: {fileID: 530749335}
-  joinPopupPanel: {fileID: 0}
-  lobbyIdInputField: {fileID: 0}
-  pasteButton: {fileID: 0}
-  confirmJoinButton: {fileID: 0}
-  cancelButton: {fileID: 0}
-  closeJoinPopupButton: {fileID: 0}
+  joinPopupPanel: {fileID: 1900000001}
+  lobbyIdInputField: {fileID: 1900000074}
+  pasteButton: {fileID: 1900000104}
+  confirmJoinButton: {fileID: 1900000134}
+  cancelButton: {fileID: 1900000154}
+  closeJoinPopupButton: {fileID: 1900000044}
   versionText: {fileID: 120391741}
   statusText: {fileID: 0}
 --- !u!114 &1467241234
@@ -1462,7 +1462,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBC29 \uB9CC\uB4E4\uAE30 (Host)"
+  m_text: "\uBC29 \uB9CC\uB4E4\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 032d5a0469002504f8c92d76da005e45, type: 2}
   m_sharedMaterial: {fileID: 7525229413108967503, guid: 032d5a0469002504f8c92d76da005e45, type: 2}
@@ -1838,7 +1838,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBC29 \uCC38\uAC00 (\uB85C\uBE44 ID)"
+  m_text: "\uBC29 \uCC38\uAC00"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 032d5a0469002504f8c92d76da005e45, type: 2}
   m_sharedMaterial: {fileID: 7525229413108967503, guid: 032d5a0469002504f8c92d76da005e45, type: 2}
@@ -3645,7 +3645,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBC29 \uCC38\uAC00 (Join)"
+  m_text: "\uBC29 \uCC38\uAC00"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 032d5a0469002504f8c92d76da005e45, type: 2}
   m_sharedMaterial: {fileID: 7525229413108967503, guid: 032d5a0469002504f8c92d76da005e45, type: 2}
