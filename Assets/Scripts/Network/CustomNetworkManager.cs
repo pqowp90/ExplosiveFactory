@@ -55,20 +55,33 @@ namespace ExplosiveFactory.Network
             EnsurePrefabsLoaded();
         }
 
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+            EnsurePrefabsLoaded();
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            EnsurePrefabsLoaded();
+        }
+
+        public override void OnClientConnect()
+        {
+            base.OnClientConnect();
+            EnsurePrefabsLoaded();
+        }
+
+        public override void OnClientSceneChanged()
+        {
+            base.OnClientSceneChanged();
+            EnsurePrefabsLoaded();
+        }
+
         public void EnsurePrefabsLoaded()
         {
-            // 1. Auto-scan all network prefabs in Resources/Network via NetworkPoolManager
-            var networkPrefabs = Resources.LoadAll<GameObject>("Network");
-            foreach (var p in networkPrefabs)
-            {
-                if (p != null && p.TryGetComponent<NetworkIdentity>(out _))
-                {
-                    if (!spawnPrefabs.Contains(p))
-                    {
-                        spawnPrefabs.Add(p);
-                    }
-                }
-            }
+            // 1. Register all poolable network prefabs via NetworkPoolManager (SecretBoar pipeline)
             NetworkPoolManager.RegisterNetworkPrefabs();
 
             // 2. Resolve LobbyPlayer & GamePlayer prefabs
@@ -104,13 +117,22 @@ namespace ExplosiveFactory.Network
 
             if (playerPrefab == null) playerPrefab = lobbyPlayerPrefab;
 
-            if (gamePlayerPrefab != null && !spawnPrefabs.Contains(gamePlayerPrefab))
+            if (gamePlayerPrefab != null)
             {
-                spawnPrefabs.Add(gamePlayerPrefab);
+                if (!spawnPrefabs.Contains(gamePlayerPrefab)) spawnPrefabs.Add(gamePlayerPrefab);
+                if (NetworkClient.active && gamePlayerPrefab.TryGetComponent<NetworkIdentity>(out var gpNetId) && !NetworkClient.prefabs.ContainsKey(gpNetId.assetId))
+                {
+                    NetworkClient.RegisterPrefab(gamePlayerPrefab);
+                }
             }
-            if (lobbyPlayerPrefab != null && !spawnPrefabs.Contains(lobbyPlayerPrefab))
+
+            if (lobbyPlayerPrefab != null)
             {
-                spawnPrefabs.Add(lobbyPlayerPrefab);
+                if (!spawnPrefabs.Contains(lobbyPlayerPrefab)) spawnPrefabs.Add(lobbyPlayerPrefab);
+                if (NetworkClient.active && lobbyPlayerPrefab.TryGetComponent<NetworkIdentity>(out var lpNetId) && !NetworkClient.prefabs.ContainsKey(lpNetId.assetId))
+                {
+                    NetworkClient.RegisterPrefab(lobbyPlayerPrefab);
+                }
             }
         }
 

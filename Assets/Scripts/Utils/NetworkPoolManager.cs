@@ -75,12 +75,12 @@ public partial class NetworkPoolManager
         return prefab as GameObject ?? (prefab as Component)?.gameObject;
     }
 
-    public static GameObject SpawnHandler(Vector3 position, uint assetId)
+    private static GameObject SpawnHandler(Vector3 position, uint assetId)
     {
-        var prefab = NetWorkPrefabs.FirstOrDefault(x => x.assetId == assetId);
+        var prefab = NetWorkPrefabs.FirstOrDefault(x => x != null && x.assetId == assetId);
         if (prefab == null)
         {
-            Debug.LogWarning($"[NetworkPoolManager] AssetId {assetId} not found in NetWorkPrefabs.");
+            Debug.LogError($"[NetworkPoolManager] AssetId {assetId} not found in NetWorkPrefabs.");
             return null;
         }
 
@@ -88,7 +88,7 @@ public partial class NetworkPoolManager
         return o;
     }
 
-    public static void UnSpawnHandler(GameObject o)
+    private static void UnSpawnHandler(GameObject o)
     {
         if (o != null)
         {
@@ -113,16 +113,13 @@ public partial class NetworkPoolManager : NetworkSingleton<NetworkPoolManager>
     public static void RegisterNetworkPrefabs()
     {
         NetWorkPrefabs.Clear();
-        var allNetPrefabs = Resources.LoadAll<GameObject>("Network");
-        foreach (var p in allNetPrefabs)
+        var allNetPrefabs = Resources.LoadAll<NetworkIdentity>("Network");
+        foreach (var netId in allNetPrefabs)
         {
-            if (p != null && p.TryGetComponent<NetworkIdentity>(out var netId))
+            if (netId != null)
             {
                 NetWorkPrefabs.Add(netId);
-                if (!NetworkClient.prefabs.ContainsKey(netId.assetId))
-                {
-                    NetworkClient.RegisterPrefab(p, SpawnHandler, UnSpawnHandler);
-                }
+                NetworkClient.RegisterPrefab(netId.gameObject, SpawnHandler, UnSpawnHandler);
             }
         }
     }

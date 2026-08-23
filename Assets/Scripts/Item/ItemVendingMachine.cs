@@ -105,6 +105,14 @@ public class ItemVendingMachine : InteractableObject
     {
         if (availableItems.Count == 0)
         {
+            var flashPrefab = Resources.Load<GameObject>("Network/Item_Flashlight");
+            var phonePrefab = Resources.Load<GameObject>("Network/Item_Phone");
+            if (flashPrefab != null) availableItems.Add(flashPrefab);
+            if (phonePrefab != null) availableItems.Add(phonePrefab);
+        }
+
+        if (availableItems.Count == 0)
+        {
             Debug.LogWarning("[ItemVendingMachine] availableItems is empty on server! Check prefab serialization.");
             return;
         }
