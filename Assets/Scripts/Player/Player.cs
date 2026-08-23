@@ -41,10 +41,21 @@ public class Player : NetworkBehaviour, IPoolable
         PlayerInput = GetComponent<PlayerInput>();
         InputController = GetComponent<InputController>();
         LegsSetup = GetComponent<FirstPersonLegsSetup>() ?? gameObject.AddComponent<FirstPersonLegsSetup>();
-        CustomNetworkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInChildren<CustomNetworkAnimator>();
-        LookAtController = GetComponent<LookAtController>() ?? GetComponentInChildren<LookAtController>();
-        FootIKController = GetComponent<FootIKController>() ?? GetComponentInChildren<FootIKController>();
         PlayerSkinController = GetComponent<PlayerSkinController>();
+
+        if (PlayerBodyTransform != null)
+        {
+            CustomNetworkAnimator = PlayerBodyTransform.GetComponent<CustomNetworkAnimator>();
+            LookAtController = PlayerBodyTransform.GetComponent<LookAtController>();
+            FootIKController = PlayerBodyTransform.GetComponent<FootIKController>();
+        }
+
+        if (CustomNetworkAnimator == null)
+            CustomNetworkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInChildren<CustomNetworkAnimator>();
+        if (LookAtController == null)
+            LookAtController = GetComponent<LookAtController>() ?? GetComponentInChildren<LookAtController>();
+        if (FootIKController == null)
+            FootIKController = GetComponent<FootIKController>() ?? GetComponentInChildren<FootIKController>();
     }
 
     /// <summary>
@@ -55,12 +66,32 @@ public class Player : NetworkBehaviour, IPoolable
         PlayerBodyTransform = newBodyTransform;
         if (newBodyTransform == null) return;
 
+        if (CustomNetworkAnimator == null)
+        {
+            CustomNetworkAnimator = newBodyTransform.GetComponent<CustomNetworkAnimator>()
+                                 ?? newBodyTransform.GetComponentInParent<CustomNetworkAnimator>();
+        }
+        if (LookAtController == null)
+        {
+            LookAtController = newBodyTransform.GetComponent<LookAtController>()
+                            ?? newBodyTransform.GetComponentInParent<LookAtController>();
+        }
+        if (FootIKController == null)
+        {
+            FootIKController = newBodyTransform.GetComponent<FootIKController>()
+                            ?? newBodyTransform.GetComponentInParent<FootIKController>();
+        }
+
         var newAnimator = newBodyTransform.GetComponentInChildren<Animator>();
 
-        // AnimatorIKForwarder 보장
-        if (newAnimator != null && newAnimator.GetComponent<AnimatorIKForwarder>() == null)
+        if (newAnimator != null)
         {
-            newAnimator.gameObject.AddComponent<AnimatorIKForwarder>();
+            newAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            // AnimatorIKForwarder 보장
+            if (newAnimator.GetComponent<AnimatorIKForwarder>() == null)
+            {
+                newAnimator.gameObject.AddComponent<AnimatorIKForwarder>();
+            }
         }
 
         if (CustomNetworkAnimator != null)
@@ -81,6 +112,12 @@ public class Player : NetworkBehaviour, IPoolable
         if (PlayerAnimation != null)
         {
             PlayerAnimation.RebindBodyAnimator(CustomNetworkAnimator);
+        }
+
+        var setter = GetComponent<LocalPlayerSetter>();
+        if (setter != null)
+        {
+            setter.RefreshBodyRenderers();
         }
     }
 

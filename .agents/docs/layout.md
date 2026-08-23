@@ -128,4 +128,5 @@
 | `Editor/NetworkPrefabPostprocessor.cs` | `NetworkPrefabPostprocessor` | `Resources/Network/`에 프리팹 추가 시 자동으로 네트워크 매니저 등록 처리. |
 | `Editor/LobbySetupTool.cs` | `LobbySetupTool` | 로비 씬 자동 구성 및 바인딩 헬퍼 에디터 윈도우. |
 | `Editor/FootIKCurveGenerator.cs` | `FootIKCurveGenerator` | 애니메이션 클립을 분석하여 `LeftFootIK` / `RightFootIK` Float 커브를 100% 자동 생성/주입하는 에디터 유틸리티. |
+| `Editor/PlayModeSelectionCleaner.cs` | `PlayModeSelectionCleaner` | 플레이 모드 진입 시 인스펙터 선택 객체 null 참조 예외(TransformInspector) 방지 에디터 헬퍼. |
 | `Editor/Toolbar/*` | `Toolbar*` | Unity 상단 툴바에 빠른 씬 전환, 플레이어 프리팹 선택 버튼을 추가하는 편의 툴. |

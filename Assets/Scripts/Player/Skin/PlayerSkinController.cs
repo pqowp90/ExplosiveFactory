@@ -70,10 +70,18 @@ public class PlayerSkinController : NetworkBehaviour
         Transform bodyTransform = Player != null ? Player.PlayerBodyTransform : null;
         if (bodyTransform == null) return;
 
-        // 1. Body 오브젝트 하위의 기존 모델 인스턴스 제거
+        // 1. Body 오브젝트 하위의 기존 모델 인스턴스 즉시 비활성화 및 분리 후 제거
         for (int i = bodyTransform.childCount - 1; i >= 0; i--)
         {
             Transform child = bodyTransform.GetChild(i);
+#if UNITY_EDITOR
+            if (UnityEditor.Selection.activeTransform != null && (UnityEditor.Selection.activeTransform == child || UnityEditor.Selection.activeTransform.IsChildOf(child)))
+            {
+                UnityEditor.Selection.activeObject = null;
+            }
+#endif
+            child.gameObject.SetActive(false);
+            child.SetParent(null);
             if (Application.isPlaying)
             {
                 Destroy(child.gameObject);
@@ -103,17 +111,28 @@ public class PlayerSkinController : NetworkBehaviour
         newModel.transform.localRotation = Quaternion.identity;
         newModel.transform.localScale = Vector3.one;
 
-        // 3. AnimatorIKForwarder 보장
+        // 3. Animator 및 AnimatorIKForwarder 보장
         var animator = newModel.GetComponentInChildren<Animator>();
-        if (animator != null && animator.GetComponent<AnimatorIKForwarder>() == null)
+        if (animator != null)
         {
-            animator.gameObject.AddComponent<AnimatorIKForwarder>();
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            if (animator.GetComponent<AnimatorIKForwarder>() == null)
+            {
+                animator.gameObject.AddComponent<AnimatorIKForwarder>();
+            }
         }
 
         // 4. Player 서브시스템에 모델 및 애니메이터 리바인딩 전파
         if (Player != null)
         {
             Player.SetPlayerBody(bodyTransform);
+
+            // 5. 로컬 플레이어 시야에서 3인칭 몸체 숨김(그림자 전용) 갱신
+            var setter = Player.GetComponent<LocalPlayerSetter>();
+            if (setter != null)
+            {
+                setter.RefreshBodyRenderers();
+            }
         }
 
         Debug.Log($"[PlayerSkinController] Skin applied: {skinData.skinName} (Index: {skinIndex})");

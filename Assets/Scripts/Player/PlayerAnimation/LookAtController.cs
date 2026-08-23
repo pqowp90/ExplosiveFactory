@@ -41,6 +41,9 @@ public class LookAtController : PlayerComponent
     private Transform _neckTransform;
     private Transform _headTransform;
 
+    private Quaternion _spineBindOffset = Quaternion.identity;
+    private Quaternion _chestBindOffset = Quaternion.identity;
+
     private float _curRotation = 0f;
     private float _realRotation = 0f;
 
@@ -77,6 +80,15 @@ public class LookAtController : PlayerComponent
             _chestTransform = _animator.GetBoneTransform(HumanBodyBones.Chest);
             _neckTransform = _animator.GetBoneTransform(HumanBodyBones.Neck);
             _headTransform = _animator.GetBoneTransform(HumanBodyBones.Head);
+
+            if (_spineTransform != null)
+            {
+                _spineBindOffset = Quaternion.Inverse(TargetTransform.rotation) * _spineTransform.rotation;
+            }
+            if (_chestTransform != null)
+            {
+                _chestBindOffset = Quaternion.Inverse(TargetTransform.rotation) * _chestTransform.rotation;
+            }
         }
     }
 
@@ -210,13 +222,13 @@ public class LookAtController : PlayerComponent
 
         if (isHolding)
         {
-            // [아이템 파지 상태] ➔ 다리 고정/턴 각도와 완벽 결합된 상체 50/50 조준
-            // 1단계: 허리(Spine)에 좌우 50% + 상하 50% 회전 적용
+            // [아이템 파지 상태] ➔ 모델 고유 바인드 포즈 오프셋을 결합한 월드 절대 안정화 (달릴 때 상체 흔들림 완벽 제거 + 본 뒤틀림 원천 차단)
+            // 1단계: 허리(Spine)에 좌우 50% + 상하 50% 절대 회전 적용
             if (_spineTransform != null)
             {
                 float spinePitch = fullPitch * spinePitchRatio;
                 float spineYaw = bodyYaw + deltaYaw * 0.5f;
-                Quaternion targetSpineRotation = Quaternion.Euler(0f, spineYaw, 0f) * Quaternion.Euler(spinePitch, 0f, 0f);
+                Quaternion targetSpineRotation = Quaternion.Euler(0f, spineYaw, 0f) * Quaternion.Euler(spinePitch, 0f, 0f) * _spineBindOffset;
 
                 if (spineWorldStabilizeWeight >= 0.99f)
                 {
@@ -228,12 +240,12 @@ public class LookAtController : PlayerComponent
                 }
             }
 
-            // 2단계: 가슴(Chest)에 좌우 100% + 상하 100% 회전 적용 (시선 완벽 일치)
+            // 2단계: 가슴(Chest)에 좌우 100% + 상하 100% 절대 회전 적용 (시선 완벽 일치 및 월드 고정)
             if (_chestTransform != null)
             {
                 float chestPitch = fullPitch * (spinePitchRatio + chestPitchRatio);
                 float chestYaw = bodyYaw + deltaYaw;
-                Quaternion targetChestRotation = Quaternion.Euler(0f, chestYaw, 0f) * Quaternion.Euler(chestPitch, 0f, 0f);
+                Quaternion targetChestRotation = Quaternion.Euler(0f, chestYaw, 0f) * Quaternion.Euler(chestPitch, 0f, 0f) * _chestBindOffset;
 
                 if (spineWorldStabilizeWeight >= 0.99f)
                 {

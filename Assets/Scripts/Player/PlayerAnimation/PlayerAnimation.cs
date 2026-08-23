@@ -31,7 +31,18 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     private void Awake()
     {
         _player = GetComponent<Player>();
-        _bodyCustomNetworkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInChildren<CustomNetworkAnimator>();
+        if (_player != null && _player.PlayerBodyTransform != null)
+        {
+            _bodyCustomNetworkAnimator = _player.PlayerBodyTransform.GetComponent<CustomNetworkAnimator>();
+        }
+        if (_bodyCustomNetworkAnimator == null && _player != null)
+        {
+            _bodyCustomNetworkAnimator = _player.CustomNetworkAnimator;
+        }
+        if (_bodyCustomNetworkAnimator == null)
+        {
+            _bodyCustomNetworkAnimator = GetComponent<CustomNetworkAnimator>();
+        }
         if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
         {
             _defaultBodyController = _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController;

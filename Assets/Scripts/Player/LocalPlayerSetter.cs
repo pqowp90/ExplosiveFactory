@@ -48,6 +48,15 @@ public class LocalPlayerSetter : NetworkBehaviour
         }
     }
 
+    public void RefreshBodyRenderers()
+    {
+        if (_player == null) _player = GetComponent<Player>();
+        if (_player != null && _player.PlayerBodyTransform != null)
+        {
+            SetRenderersShadowOnly(_player.PlayerBodyTransform, isOwned);
+        }
+    }
+
     private void SetRenderersShadowOnly(Transform target, bool shadowOnly)
     {
         if (target == null) return;
