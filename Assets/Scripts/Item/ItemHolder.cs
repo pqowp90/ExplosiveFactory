@@ -32,7 +32,10 @@ public class ItemHolder : NetworkBehaviour
     private readonly List<Item?> _holdingItems = new();
 
     private HandyItemObject _currentHandyItemObject;
-    public HandyItemObject CurrentHandyItemObject => _currentHandyItemObject;
+    public HandyItemObject CurrentHandyItemObject => _currentHandyItemObject ?? _currentBodyHandyItemObject;
+
+    private HandyItemObject _currentBodyHandyItemObject;
+    public HandyItemObject CurrentBodyHandyItemObject => _currentBodyHandyItemObject;
 
     private void Awake()
     {
@@ -289,7 +292,7 @@ public class ItemHolder : NetworkBehaviour
             _player.PlayerAnimation.ResetHandyAnimation();
         }
 
-        // 기존 쥐고 있던 HandyObject 정리
+        // 기존 쥐고 있던 1인칭 및 3인칭 HandyObject 정리
         if (_currentHandyItemObject != null)
         {
             if (_currentHandyItemObject.Item != null)
@@ -298,6 +301,12 @@ public class ItemHolder : NetworkBehaviour
             }
             PoolManager.Release(_currentHandyItemObject);
             _currentHandyItemObject = null;
+        }
+
+        if (_currentBodyHandyItemObject != null)
+        {
+            PoolManager.Release(_currentBodyHandyItemObject);
+            _currentBodyHandyItemObject = null;
         }
 
         if (item == null || item.HandyItemObjectPrefab == null)
@@ -309,63 +318,119 @@ public class ItemHolder : NetworkBehaviour
             return;
         }
 
-        // 새 HandyObject 스폰 및 소켓 부착
-        var handyItemObj = PoolManager.Get(item.HandyItemObjectPrefab);
-        if (handyItemObj == null) return;
-
-        item.HandyItemObject = handyItemObj;
-        _currentHandyItemObject = handyItemObj;
-        _currentHandyItemObject.Item = item;
-        _currentHandyItemObject.OnSpawned(_player);
-        item.OnHandyItemObjectSpawned();
-
-        if (_player != null && _player.PlayerAnimation != null)
-        {
-            _player.PlayerAnimation.SetAnimatorController(handyItemObj);
-        }
-
         if (isOwned)
         {
-            if (_handyTypeTransforms.TryGetValue(handyItemObj.PlayerHandyType, out var handTransform) && handTransform != null)
+            // 1. 로컬 플레이어: 1인칭 손 소켓에 1인칭용 HandyItemObject 스폰 및 부착
+            var handyItemObj = PoolManager.Get(item.HandyItemObjectPrefab);
+            if (handyItemObj != null)
             {
-                handyItemObj.transform.SetParent(handTransform);
-                handyItemObj.transform.localPosition = handyItemObj.HandOffset;
-                handyItemObj.transform.localRotation = Quaternion.Euler(handyItemObj.HandRotation);
-                SetLayerByParent(handyItemObj.transform);
+                item.HandyItemObject = handyItemObj;
+                _currentHandyItemObject = handyItemObj;
+                _currentHandyItemObject.Item = item;
+                _currentHandyItemObject.OnSpawned(_player, HandyAttachMode.FirstPerson);
+                item.OnHandyItemObjectSpawned();
+
+                if (_player != null && _player.PlayerAnimation != null)
+                {
+                    _player.PlayerAnimation.SetAnimatorController(handyItemObj);
+                }
+
+                if (_handyTypeTransforms.TryGetValue(handyItemObj.PlayerHandyType, out var handTransform) && handTransform != null)
+                {
+                    handyItemObj.AttachToSocket(handTransform, handyItemObj.HandOffset, handyItemObj.HandRotation);
+                    SetLayerByParent(handyItemObj.transform);
+                }
+            }
+
+            // 2. 로컬 플레이어: 3인칭 바디 소켓에도 3인칭용 HandyItemObject 스폰 및 부착 (그림자 전용 ShadowsOnly)
+            var bodyItemObj = PoolManager.Get(item.HandyItemObjectPrefab);
+            if (bodyItemObj != null)
+            {
+                _currentBodyHandyItemObject = bodyItemObj;
+                _currentBodyHandyItemObject.Item = item;
+                _currentBodyHandyItemObject.OnSpawned(_player, HandyAttachMode.ShadowOnly);
+
+                if (_bodyTypeTransforms.TryGetValue(bodyItemObj.PlayerHandyType, out var bodyTransform) && bodyTransform != null)
+                {
+                    bodyItemObj.AttachToSocket(bodyTransform, bodyItemObj.BodyOffset, bodyItemObj.BodyRotation);
+                    SetLayerAndShadow(bodyItemObj.transform, UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly);
+                }
             }
         }
         else
         {
-            if (_bodyTypeTransforms.TryGetValue(handyItemObj.PlayerHandyType, out var bodyTransform) && bodyTransform != null)
+            // 원격 플레이어: 3인칭 바디 소켓에만 스폰 및 부착 (일반 렌더링 On)
+            var bodyItemObj = PoolManager.Get(item.HandyItemObjectPrefab);
+            if (bodyItemObj != null)
             {
-                handyItemObj.transform.SetParent(bodyTransform);
-                handyItemObj.transform.localPosition = handyItemObj.BodyOffset;
-                handyItemObj.transform.localRotation = Quaternion.Euler(handyItemObj.BodyRotation);
-                SetLayerByParent(handyItemObj.transform);
+                item.HandyItemObject = bodyItemObj;
+                _currentBodyHandyItemObject = bodyItemObj;
+                _currentBodyHandyItemObject.Item = item;
+                _currentBodyHandyItemObject.OnSpawned(_player, HandyAttachMode.ThirdPerson);
+                item.OnHandyItemObjectSpawned();
+
+                if (_player != null && _player.PlayerAnimation != null)
+                {
+                    _player.PlayerAnimation.SetAnimatorController(bodyItemObj);
+                }
+
+                if (_bodyTypeTransforms.TryGetValue(bodyItemObj.PlayerHandyType, out var bodyTransform) && bodyTransform != null)
+                {
+                    bodyItemObj.AttachToSocket(bodyTransform, bodyItemObj.BodyOffset, bodyItemObj.BodyRotation);
+                    SetLayerAndShadow(bodyItemObj.transform, UnityEngine.Rendering.ShadowCastingMode.On);
+                }
             }
+        }
+    }
+
+    /// <summary>
+    /// 애니메이션 트리거 이벤트를 1인칭 및 3인칭 핸디 오브젝트 모두에 안전하게 전파합니다.
+    /// </summary>
+    public void TriggerAnimationEvent(int triggerID)
+    {
+        if (_currentHandyItemObject != null)
+        {
+            _currentHandyItemObject.OnAnimationTriggerEvent(triggerID);
+        }
+        if (_currentBodyHandyItemObject != null && _currentBodyHandyItemObject != _currentHandyItemObject)
+        {
+            _currentBodyHandyItemObject.OnAnimationTriggerEvent(triggerID);
         }
     }
 
     private void SetLayerByParent(Transform target)
     {
+        SetLayerAndShadow(target, UnityEngine.Rendering.ShadowCastingMode.Off);
+    }
+
+    private void SetLayerAndShadow(Transform target, UnityEngine.Rendering.ShadowCastingMode shadowMode)
+    {
         if (target == null || target.parent == null) return;
         var layer = target.parent.gameObject.layer;
-        target.gameObject.layer = layer;
-        foreach (Transform child in target)
-        {
-            if (child != null)
-            {
-                child.gameObject.layer = layer;
-            }
-        }
+        SetLayerRecursively(target, layer);
 
         var renderers = target.GetComponentsInChildren<Renderer>(true);
         foreach (var r in renderers)
         {
             if (r != null)
             {
-                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                r.shadowCastingMode = shadowMode;
+                r.allowOcclusionWhenDynamic = false;
+                if (r is SkinnedMeshRenderer smr)
+                {
+                    smr.updateWhenOffscreen = true;
+                }
             }
+        }
+    }
+
+    private void SetLayerRecursively(Transform target, int layer)
+    {
+        if (target == null) return;
+        target.gameObject.layer = layer;
+        for (int i = 0; i < target.childCount; i++)
+        {
+            SetLayerRecursively(target.GetChild(i), layer);
         }
     }
 
@@ -431,10 +496,14 @@ public class ItemHolder : NetworkBehaviour
             SetBodyTransformInList(PlayerHandyType.Left, leftHand);
         }
 
-        // 현재 들고 있는 아이템이 있다면 새 소켓으로 재배치
-        if (_currentHandyItemObject != null)
+        // 현재 들고 있는 3인칭 아이템이 있다면 새 소켓으로 재배치
+        if (_currentBodyHandyItemObject != null)
         {
-            UpdateHandyObject();
+            if (_bodyTypeTransforms.TryGetValue(_currentBodyHandyItemObject.PlayerHandyType, out var bodyTransform) && bodyTransform != null)
+            {
+                _currentBodyHandyItemObject.AttachToSocket(bodyTransform, _currentBodyHandyItemObject.BodyOffset, _currentBodyHandyItemObject.BodyRotation);
+                SetLayerAndShadow(_currentBodyHandyItemObject.transform, isOwned ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On);
+            }
         }
     }
 

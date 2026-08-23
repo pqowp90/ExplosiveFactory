@@ -16,20 +16,56 @@ public class HandyPhoneUI : MonoBehaviour, IPoolable
 	[SerializeField]
 	readonly private Stack<GameObject> _uiList = new Stack<GameObject>();
 	private Canvas _canvas;
+	private Canvas[] _canvases = Array.Empty<Canvas>();
+	private GraphicRaycaster[] _raycasters = Array.Empty<GraphicRaycaster>();
+
 	private void Awake()
 	{
-		_canvas = GetComponentInChildren<Canvas>();
+		_canvases = GetComponentsInChildren<Canvas>(true);
+		_raycasters = GetComponentsInChildren<GraphicRaycaster>(true);
+		_canvas = _canvases.Length > 0 ? _canvases[0] : GetComponentInChildren<Canvas>();
 		_handyItemObject = GetComponent<HandyItemObject>();
-		_handyItemObject.OnHandyItemObjectSpawnedEvent += OnSpawned;
+		if (_handyItemObject != null)
+		{
+			_handyItemObject.OnHandyItemObjectSpawnedEvent += OnSpawned;
+		}
 	}
 
 	private void OnSpawned(Player player)
 	{
-		_canvas.worldCamera = player.Camera;
-		if (WardrobeUI != null)
+		bool isFirstPerson = _handyItemObject != null && _handyItemObject.CurrentAttachMode == HandyAttachMode.FirstPerson;
+		bool isShadowOnly = _handyItemObject != null && _handyItemObject.CurrentAttachMode == HandyAttachMode.ShadowOnly;
+		bool showCanvas = !isShadowOnly;
+
+		// 그림자 모드일 때만 캔버스를 끄고, 1인칭 및 일반 3인칭에서는 캔버스 활성화 유지
+		foreach (var c in _canvases)
 		{
-			var modelSelect = WardrobeUI.GetComponent<ModelSelectUI>();
-			if (modelSelect != null) modelSelect.SetLocalPlayer(player);
+			if (c != null)
+			{
+				c.enabled = showCanvas;
+				c.gameObject.SetActive(showCanvas);
+				if (isFirstPerson && player != null)
+				{
+					c.worldCamera = player.Camera;
+				}
+			}
+		}
+
+		foreach (var r in _raycasters)
+		{
+			if (r != null)
+			{
+				r.enabled = isFirstPerson;
+			}
+		}
+
+		if (isFirstPerson)
+		{
+			if (WardrobeUI != null && player != null)
+			{
+				var modelSelect = WardrobeUI.GetComponent<ModelSelectUI>();
+				if (modelSelect != null) modelSelect.SetLocalPlayer(player);
+			}
 		}
 	}
 

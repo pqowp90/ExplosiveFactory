@@ -60,7 +60,7 @@
 | `Item/ItemDataManager.cs` | `ItemDataManager` | `Resources/ItemData/` 경로의 `ItemData` 에셋을 로드하고 관리하는 싱글톤 (`MonoSingleton<ItemDataManager>`). ID 기반 아이템 메타데이터 조회 지원. |
 | `Item/ItemVendingMachine.cs` | `ItemVendingMachine` | 인게임 아이템 구매/뽑기 자판기 오브젝트. 서버에서 인터랙션 요청을 검증하고 `NetworkPoolManager`를 통해 아이템 배출. |
 | `Item/ItemEventBehaviour.cs` | `ItemEventBehaviour` | 아이템의 주움, 버림, 사용 이벤트에 반응하는 베이스 컴포넌트. |
-| `Item/HandyItemObject.cs` | `HandyItemObject` | 손에 쥐었을 때 특정 기능을 발동하는 기능성 핸디 아이템의 기본 클래스. |
+| `Item/HandyItemObject.cs` | `HandyItemObject` | 손에 쥐었을 때 특정 기능을 발동하는 기능성 핸디 아이템의 기본 클래스. `HandyAttachMode`를 통해 1인칭 손, 3인칭 몸체, 그림자(ShadowOnly) 컨텍스트별 분기 라이프사이클 지원. |
 | `Item/HandyItem/FlashLightHandyItemObject.cs` | `FlashLightHandyItemObject` | 손전등 아이템 구현체. 마우스 우클릭 시 손 애니메이션 및 `OnAnimationTriggerEvent(0)`를 통해 스팟라이트 On/Off 토글. |
 | `Item/ToggleHoldItem/ToggleHoldItem.cs` | `ToggleHoldItem` | 들고 있을 때 모드 전환이나 상태 토글이 가능한 아이템 베이스. |
 | `Item/ToggleHoldItem/PhoneItem/PhoneItem.cs` | `PhoneItem` | 스마트폰 아이템 구현체. 마우스 우클릭 시 화면 확대/UI 인터랙션 모드 지원. |

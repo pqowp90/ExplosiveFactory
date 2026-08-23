@@ -134,7 +134,10 @@ public static class PoolManager
 
     private static GameObject GetGameObject<T>(T prefab) where T : Object
     {
-        return prefab as GameObject ?? (prefab as Component)?.gameObject;
+        if (prefab == null) return null;
+        if (prefab is GameObject go) return go != null ? go : null;
+        if (prefab is Component comp) return comp != null ? comp.gameObject : null;
+        return null;
     }
 
     private abstract class Pool
@@ -168,16 +171,27 @@ public static class PoolManager
                 _lists.Add(prefab, stack);
             }
 
-            T obj;
-            GameObject gameObject;
+            T obj = null;
+            GameObject gameObject = null;
 
-            if (stack.Count > 0)
+            // 스택에서 파괴되지 않은 유효한 객체가 나올 때까지 탐색
+            while (stack.Count > 0)
             {
                 obj = stack[^1];
                 stack.RemoveAt(stack.Count - 1);
-                gameObject = GetGameObject(obj);
+                if (obj != null)
+                {
+                    gameObject = GetGameObject(obj);
+                    if (gameObject != null)
+                    {
+                        break;
+                    }
+                }
+                obj = null;
+                gameObject = null;
             }
-            else
+
+            if (obj == null || gameObject == null)
             {
                 obj = Object.Instantiate(prefab, parent);
                 gameObject = GetGameObject(obj);
@@ -188,10 +202,17 @@ public static class PoolManager
             gameObject.hideFlags = HideFlags.None;
             gameObject.transform.SetAsLastSibling();
 
-            if (GetGameObject(prefab).activeSelf)
+            var prefabGo = GetGameObject(prefab);
+            if (prefabGo != null && prefabGo.activeSelf)
                 gameObject.SetActive(true);
 
-            foreach (var poolable in _poolables[gameObject]) poolable.OnSpawned();
+            if (_poolables.TryGetValue(gameObject, out var poolables))
+            {
+                foreach (var poolable in poolables)
+                {
+                    if (poolable != null) poolable.OnSpawned();
+                }
+            }
 
             _pooledObjects.Remove(gameObject);
 
@@ -211,15 +232,25 @@ public static class PoolManager
 
         public void Release(T obj)
         {
-            Release(GetGameObject(obj));
+            if (obj == null) return;
+            var go = GetGameObject(obj);
+            if (go != null) Release(go);
         }
 
         public override void Release(GameObject gameObject)
         {
+            if (gameObject == null) return;
+
             if (_prefabs.TryGetValue(gameObject, out var prefab) == false)
             {
-                gameObject.GetComponentsInChildren<IPoolable>(true).ToList()
-                    .ForEach(poolable => poolable.OnDespawned());
+                var poolableComponents = gameObject.GetComponentsInChildren<IPoolable>(true);
+                if (poolableComponents != null)
+                {
+                    foreach (var poolable in poolableComponents)
+                    {
+                        if (poolable != null) poolable.OnDespawned();
+                    }
+                }
 
                 Debug.LogWarning($"[PoolManager] {gameObject.name} is not pooled object.");
                 Object.Destroy(gameObject);
@@ -233,8 +264,12 @@ public static class PoolManager
             }
 
             if (_poolables.TryGetValue(gameObject, out var poolables))
+            {
                 foreach (var poolable in poolables)
-                    poolable.OnDespawned();
+                {
+                    if (poolable != null) poolable.OnDespawned();
+                }
+            }
 
             if (gameObject != null) gameObject.SetActive(false);
             gameObject.hideFlags = HideFlags.HideInHierarchy;

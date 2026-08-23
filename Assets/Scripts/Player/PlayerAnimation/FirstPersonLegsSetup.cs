@@ -66,6 +66,20 @@ public class FirstPersonLegsSetup : PlayerComponent
             legAnimator.gameObject.AddComponent<FootIKController>();
         }
 
+        // 다리 렌더러 오클루전 컬링 비활성화 및 화면 밖 애니메이션 유지
+        var legRenderers = legsObj.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in legRenderers)
+        {
+            if (r != null)
+            {
+                r.allowOcclusionWhenDynamic = false;
+                if (r is SkinnedMeshRenderer smr)
+                {
+                    smr.updateWhenOffscreen = true;
+                }
+            }
+        }
+
         Player.PlayerLegTransform = legsObj.transform;
     }
 

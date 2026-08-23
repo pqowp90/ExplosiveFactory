@@ -47,8 +47,10 @@ graph TD
 ## 3. 아이템 파생 클래스 분류
 
 - **`HandyItemObject` / `FlashLightHandyItemObject`:**
+  - `HandyAttachMode`에 따라 1인칭 손(`FirstPerson`), 3인칭 캐릭터 몸체(`ThirdPerson`), 로컬 그림자 바디(`ShadowOnly`)별로 역할을 분기하여 리소스(조명, UI, 렌더러) 최적화.
   - 손에 쥔 상태에서 좌클릭(`UsePrimary`) / 우클릭(`UseSecondary`) 시 즉시 고유 기능 발동 (예: 손전등 빛 On/Off 토글).
 - **`ToggleHoldItem` / `PhoneItem`:**
+  - `FirstPerson` 모드일 때만 스마트폰 UI/Canvas 활성화, 3인칭/그림자에서는 외형 렌더링만 유지.
   - 우클릭 유지 또는 토글 시 플레이어 화면 앞쪽으로 아이템을 들어 올리고 UI 모드 진입 (스마트폰 앱 조작).
 - **`NomalItem`:**
   - 별도 기능 없이 운반, 판매, 자판기 재료 투입 등의 용도로 사용되는 일반 화물 아이템.

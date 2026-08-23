@@ -74,12 +74,23 @@ public class LocalPlayerSetter : NetworkBehaviour
         }
     }
 
+    private static void ApplyOcclusionCullingDisabled(Renderer r)
+    {
+        if (r == null) return;
+        r.allowOcclusionWhenDynamic = false;
+        if (r is SkinnedMeshRenderer smr)
+        {
+            smr.updateWhenOffscreen = true;
+        }
+    }
+
     private void SetRenderersShadowOnly(Transform target, bool shadowOnly)
     {
         if (target == null) return;
         var renderers = target.GetComponentsInChildren<Renderer>(true);
         foreach (var r in renderers)
         {
+            ApplyOcclusionCullingDisabled(r);
             if (shadowOnly)
             {
                 r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
@@ -98,6 +109,7 @@ public class LocalPlayerSetter : NetworkBehaviour
         var renderers = target.GetComponentsInChildren<Renderer>(true);
         foreach (var r in renderers)
         {
+            ApplyOcclusionCullingDisabled(r);
             r.enabled = active;
         }
     }
@@ -109,6 +121,7 @@ public class LocalPlayerSetter : NetworkBehaviour
         var renderers = target.GetComponentsInChildren<Renderer>(true);
         foreach (var r in renderers)
         {
+            ApplyOcclusionCullingDisabled(r);
             r.shadowCastingMode = ShadowCastingMode.Off;
             r.enabled = true;
         }

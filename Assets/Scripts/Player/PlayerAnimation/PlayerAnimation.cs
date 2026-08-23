@@ -137,14 +137,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         if (_player != null && _player.ItemHolder != null)
         {
-            if (_player.ItemHolder.CurrentHandyItemObject != null)
-            {
-                _player.ItemHolder.CurrentHandyItemObject.OnAnimationTriggerEvent(triggerID);
-            }
-            else if (_player.ItemHolder.HoldingItem != null && _player.ItemHolder.HoldingItem.HandyItemObject != null)
-            {
-                _player.ItemHolder.HoldingItem.HandyItemObject.OnAnimationTriggerEvent(triggerID);
-            }
+            _player.ItemHolder.TriggerAnimationEvent(triggerID);
         }
     }
 

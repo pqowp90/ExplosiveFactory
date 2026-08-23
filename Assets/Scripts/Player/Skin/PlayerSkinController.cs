@@ -80,6 +80,16 @@ public class PlayerSkinController : NetworkBehaviour
                 UnityEditor.Selection.activeObject = null;
             }
 #endif
+            // 손 본 등에 부착된 핸디 오브젝트가 함께 파괴되지 않도록 미리 분리
+            var attachedHandyObjects = child.GetComponentsInChildren<HandyItemObject>(true);
+            foreach (var handy in attachedHandyObjects)
+            {
+                if (handy != null)
+                {
+                    handy.transform.SetParent(null);
+                }
+            }
+
             child.gameObject.SetActive(false);
             child.SetParent(null);
             if (Application.isPlaying)
@@ -111,7 +121,7 @@ public class PlayerSkinController : NetworkBehaviour
         newModel.transform.localRotation = Quaternion.identity;
         newModel.transform.localScale = Vector3.one;
 
-        // 3. Animator 및 AnimatorIKForwarder 보장
+        // 3. Animator 및 AnimatorIKForwarder 보장, 렌더러 오클루전 컬링 비활성화
         var animator = newModel.GetComponentInChildren<Animator>();
         if (animator != null)
         {
@@ -119,6 +129,19 @@ public class PlayerSkinController : NetworkBehaviour
             if (animator.GetComponent<AnimatorIKForwarder>() == null)
             {
                 animator.gameObject.AddComponent<AnimatorIKForwarder>();
+            }
+        }
+
+        var newRenderers = newModel.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in newRenderers)
+        {
+            if (r != null)
+            {
+                r.allowOcclusionWhenDynamic = false;
+                if (r is SkinnedMeshRenderer smr)
+                {
+                    smr.updateWhenOffscreen = true;
+                }
             }
         }
 

@@ -34,10 +34,21 @@ public class Item : InteractableObject, IPoolable
 
     private Rigidbody _rigidbody;
     private Collider[] _colliders = Array.Empty<Collider>();
+    private Vector3 _initialLocalScale = Vector3.one;
+    private Vector3 _initialRendererLocalScale = Vector3.one;
+    private Vector3 _initialRendererLocalPos = Vector3.zero;
+    private Quaternion _initialRendererLocalRot = Quaternion.identity;
 
     protected override void Awake()
     {
         base.Awake();
+        _initialLocalScale = transform.localScale;
+        if (RendererObject != null)
+        {
+            _initialRendererLocalScale = RendererObject.transform.localScale;
+            _initialRendererLocalPos = RendererObject.transform.localPosition;
+            _initialRendererLocalRot = RendererObject.transform.localRotation;
+        }
         _rigidbody = GetComponentInChildren<Rigidbody>();
         _colliders = GetComponentsInChildren<Collider>(true);
     }
@@ -70,6 +81,17 @@ public class Item : InteractableObject, IPoolable
         if (RendererObject != null)
         {
             RendererObject.SetActive(!pickedUp);
+            if (!pickedUp)
+            {
+                var itemRenderers = RendererObject.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in itemRenderers)
+                {
+                    if (r != null)
+                    {
+                        r.allowOcclusionWhenDynamic = false;
+                    }
+                }
+            }
         }
 
         if (_colliders != null)
@@ -130,11 +152,13 @@ public class Item : InteractableObject, IPoolable
 
         transform.position = pos;
         transform.rotation = rot;
+        transform.localScale = _initialLocalScale;
 
         if (RendererObject != null)
         {
-            RendererObject.transform.position = pos;
-            RendererObject.transform.rotation = rot;
+            RendererObject.transform.localPosition = _initialRendererLocalPos;
+            RendererObject.transform.localRotation = _initialRendererLocalRot;
+            RendererObject.transform.localScale = _initialRendererLocalScale;
         }
 
         ApplyPickupVisualAndPhysics(false);
@@ -180,6 +204,13 @@ public class Item : InteractableObject, IPoolable
     public void OnSpawned()
     {
         _isPickedUp = false;
+        transform.localScale = _initialLocalScale;
+        if (RendererObject != null)
+        {
+            RendererObject.transform.localPosition = _initialRendererLocalPos;
+            RendererObject.transform.localRotation = _initialRendererLocalRot;
+            RendererObject.transform.localScale = _initialRendererLocalScale;
+        }
         ApplyPickupVisualAndPhysics(false);
     }
 
