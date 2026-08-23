@@ -41,6 +41,10 @@ public class ItemHolder : NetworkBehaviour
             _itemDropPoint = transform;
 
         GetHandyTransformByHandyType();
+        if (_player != null && _player.PlayerBodyTransform != null)
+        {
+            RebindBodySockets(_player.PlayerBodyTransform);
+        }
         EnsureHoldingItemsCapacity();
     }
 
@@ -378,6 +382,85 @@ public class ItemHolder : NetworkBehaviour
                 if (itemHandyTypeTransform.BodyTransform != null)
                     _bodyTypeTransforms[itemHandyTypeTransform.PlayerHandyType] = itemHandyTypeTransform.BodyTransform;
             }
+        }
+    }
+
+    /// <summary>
+    /// 플레이어 모델링 교체 시 새 3인칭 모델의 오른손/왼손 본을 탐색하여 3인칭 소켓을 동적으로 재바인딩합니다.
+    /// </summary>
+    public void RebindBodySockets(Transform newBodyTransform)
+    {
+        if (newBodyTransform == null) return;
+
+        Transform rightHand = null;
+        Transform leftHand = null;
+
+        var animator = newBodyTransform.GetComponentInChildren<Animator>();
+        if (animator != null && animator.isHuman)
+        {
+            rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            leftHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+        }
+
+        // 이름 기반 폴백 탐색
+        if (rightHand == null || leftHand == null)
+        {
+            var allTransforms = newBodyTransform.GetComponentsInChildren<Transform>(true);
+            foreach (var t in allTransforms)
+            {
+                string lower = t.name.ToLower();
+                if (rightHand == null && (lower.Contains("righthand") || lower.Contains("hand.r") || lower.Contains("hand_r") || lower.EndsWith(":righthand") || lower == "right hand"))
+                {
+                    rightHand = t;
+                }
+                if (leftHand == null && (lower.Contains("lefthand") || lower.Contains("hand.l") || lower.Contains("hand_l") || lower.EndsWith(":lefthand") || lower == "left hand"))
+                {
+                    leftHand = t;
+                }
+            }
+        }
+
+        if (rightHand != null)
+        {
+            _bodyTypeTransforms[PlayerHandyType.Right] = rightHand;
+            SetBodyTransformInList(PlayerHandyType.Right, rightHand);
+        }
+        if (leftHand != null)
+        {
+            _bodyTypeTransforms[PlayerHandyType.Left] = leftHand;
+            SetBodyTransformInList(PlayerHandyType.Left, leftHand);
+        }
+
+        // 현재 들고 있는 아이템이 있다면 새 소켓으로 재배치
+        if (_currentHandyItemObject != null)
+        {
+            UpdateHandyObject();
+        }
+    }
+
+    private void SetBodyTransformInList(PlayerHandyType type, Transform targetTransform)
+    {
+        if (targetTransform == null) return;
+
+        bool found = false;
+        for (int i = 0; i < _itemHandyTypeTransforms.Count; i++)
+        {
+            var item = _itemHandyTypeTransforms[i];
+            if (item != null && item.PlayerHandyType == type)
+            {
+                item.BodyTransform = targetTransform;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            _itemHandyTypeTransforms.Add(new ItemHandyTypeTransform
+            {
+                PlayerHandyType = type,
+                BodyTransform = targetTransform
+            });
         }
     }
 }

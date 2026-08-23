@@ -120,6 +120,11 @@ public class Player : NetworkBehaviour, IPoolable
             PlayerAnimation.RebindLegAnimator();
         }
 
+        if (ItemHolder != null)
+        {
+            ItemHolder.RebindBodySockets(newBodyTransform);
+        }
+
         var setter = GetComponent<LocalPlayerSetter>();
         if (setter != null)
         {
