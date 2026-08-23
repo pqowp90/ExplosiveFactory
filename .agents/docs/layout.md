@@ -90,7 +90,7 @@
 | `UI/PhoneTimeUI.cs` | `PhoneTimeUI` | 스마트폰 상단 시간 및 배터리 표시기 UI. |
 | `UI/MarketUI.cs` | `MarketUI` | 자판기/상점 인터랙션 시 열리는 아이템 구매 창 UI. |
 | `UI/MarketItemUI.cs` | `MarketItemUI` | 상점 창 내 개별 판매 아이템 슬롯 UI. |
-| `UI/InviteUI.cs` | `InviteUI` | 스팀 친구 초대 모달 팝업 UI. |
+| `UI/InviteUI.cs` | `InviteUI` | 스마트폰 내 스팀 친구 초대 및 프로필 화면 UI. 본인 스팀 아바타/닉네임 로드, 스팀 친구 목록 동적 로드(`SteamFriendsManager`), 원클릭 게임/로비 초대, 오버레이 호출 및 로비 ID 복사 관리. |
 
 ---
 

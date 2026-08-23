@@ -1063,7 +1063,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\U0001F3AE Steam \uCE5C\uAD6C \uCD08\uB300"
+  m_text: "\uCE5C\uAD6C \uCD08\uB300"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 367c2ef1c53a422489c46c5fa1a9acb6, type: 2}
   m_sharedMaterial: {fileID: -7274667125692925347, guid: 367c2ef1c53a422489c46c5fa1a9acb6, type: 2}
@@ -1655,7 +1655,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\U0001F4CB \uB85C\uBE44 ID \uBCF5\uC0AC"
+  m_text: "\uB85C\uBE44 ID \uBCF5\uC0AC"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 367c2ef1c53a422489c46c5fa1a9acb6, type: 2}
   m_sharedMaterial: {fileID: -7274667125692925347, guid: 367c2ef1c53a422489c46c5fa1a9acb6, type: 2}

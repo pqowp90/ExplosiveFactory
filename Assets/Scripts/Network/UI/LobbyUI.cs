@@ -26,6 +26,7 @@ namespace ExplosiveFactory.Network.UI
         [SerializeField] private GameObject? friendItemPrefab;
         [SerializeField] private Button? closeFriendsPopupButton;
         [SerializeField] private Button? copyLobbyIdButton;
+        [SerializeField] private Button? refreshFriendsButton;
         [Header("Toast / Feedback")]
         [SerializeField] private TextMeshProUGUI? inviteToastText;
 
@@ -44,6 +45,7 @@ namespace ExplosiveFactory.Network.UI
 
             if (closeFriendsPopupButton != null) closeFriendsPopupButton.onClick.AddListener(CloseFriendsPopup);
             if (copyLobbyIdButton != null) copyLobbyIdButton.onClick.AddListener(() => LobbyService.Instance?.OpenInviteOverlay());
+            if (refreshFriendsButton != null) refreshFriendsButton.onClick.AddListener(RefreshFriendsList);
 
             if (friendsPopupPanel != null)
             {
@@ -111,10 +113,15 @@ namespace ExplosiveFactory.Network.UI
             if (friendsPopupPanel != null)
             {
                 friendsPopupPanel.SetActive(true);
-                if (friendsContent != null && friendItemPrefab != null && SteamFriendsManager.Instance != null)
-                {
-                    SteamFriendsManager.Instance.PopulateFriends(friendsContent, friendItemPrefab);
-                }
+                RefreshFriendsList();
+            }
+        }
+
+        public void RefreshFriendsList()
+        {
+            if (friendsContent != null && friendItemPrefab != null && SteamFriendsManager.Instance != null)
+            {
+                SteamFriendsManager.Instance.PopulateFriends(friendsContent, friendItemPrefab);
             }
         }
 
