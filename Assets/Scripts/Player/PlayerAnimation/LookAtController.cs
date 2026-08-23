@@ -27,6 +27,13 @@ public class LookAtController : PlayerComponent
     [Range(0f, 1f)]
     public float spineWorldStabilizeWeight = 1.0f;
 
+    [Header("Target Model Transform")]
+    [Tooltip("3인칭 바디 모델 트랜스폼 (미지정 시 Player.PlayerBodyTransform 또는 transform 자동 사용)")]
+    public Transform targetBodyTransform;
+
+    private Transform TargetTransform => targetBodyTransform != null ? targetBodyTransform : (PlayerBodyTransform != null ? PlayerBodyTransform : transform);
+    private Transform RootTransform => Player != null ? Player.transform : (transform.parent != null ? transform.parent : transform);
+
     private CustomNetworkAnimator _networkAnimator;
     private Animator _animator;
     private Transform _spineTransform;
@@ -39,10 +46,31 @@ public class LookAtController : PlayerComponent
 
     private void Start()
     {
-        _networkAnimator = GetComponent<CustomNetworkAnimator>();
-        if (_networkAnimator != null) _animator = _networkAnimator.Animator;
-        if (_animator == null) _animator = GetComponent<Animator>();
+        InitializeComponents();
+    }
 
+    private void InitializeComponents()
+    {
+        _networkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInParent<CustomNetworkAnimator>();
+        if (_networkAnimator != null) _animator = _networkAnimator.Animator;
+        if (_animator == null) _animator = TargetTransform.GetComponentInChildren<Animator>();
+
+        BindBones();
+        _curRotation = RootTransform.eulerAngles.y;
+    }
+
+    /// <summary>
+    /// 플레이어 모델링 교체 시 타겟 트랜스폼 및 본 레퍼런스를 즉시 재바인딩합니다.
+    /// </summary>
+    public void RebindModel(Transform newBodyTransform, Animator newAnimator = null)
+    {
+        targetBodyTransform = newBodyTransform;
+        _animator = newAnimator != null ? newAnimator : TargetTransform.GetComponentInChildren<Animator>();
+        BindBones();
+    }
+
+    private void BindBones()
+    {
         if (_animator != null && _animator.isHuman)
         {
             _spineTransform = _animator.GetBoneTransform(HumanBodyBones.Spine);
@@ -50,17 +78,16 @@ public class LookAtController : PlayerComponent
             _neckTransform = _animator.GetBoneTransform(HumanBodyBones.Neck);
             _headTransform = _animator.GetBoneTransform(HumanBodyBones.Head);
         }
-
-        _curRotation = transform.parent.eulerAngles.y;
     }
 
     private void Update()
     {
+        float rootYaw = RootTransform.eulerAngles.y;
         if (PlayerAnimation != null && !PlayerAnimation.IsMoving)
         {
-            if (Mathf.Abs(Mathf.DeltaAngle(_realRotation, transform.parent.eulerAngles.y)) > 60f)
+            if (Mathf.Abs(Mathf.DeltaAngle(_realRotation, rootYaw)) > 60f)
             {
-                _curRotation = transform.parent.eulerAngles.y;
+                _curRotation = rootYaw;
             }
             var deltaAngle = Mathf.DeltaAngle(_realRotation, _curRotation);
             if (Mathf.Abs(deltaAngle) < 3f)
@@ -76,25 +103,44 @@ public class LookAtController : PlayerComponent
         }
         else
         {
-            _curRotation = transform.parent.eulerAngles.y;
+            _curRotation = rootYaw;
             var deltaAngle = Mathf.DeltaAngle(_realRotation, _curRotation);
             _realRotation += deltaAngle * Time.deltaTime * 10f;
         }
-        transform.eulerAngles = new Vector3(0, _realRotation, 0);
+
+        TargetTransform.eulerAngles = new Vector3(0, _realRotation, 0);
 
         // 1인칭 로컬 플레이어일 때만 3인칭 몸체 모델(그림자)을 회전축 뒤로 오프셋
         float bodyBack = (IsOwned && LegsSetup != null && LegsSetup.Settings != null)
             ? LegsSetup.Settings.firstPersonBodyBackwardOffset
             : 0f;
-        transform.localPosition = Quaternion.Euler(0, _realRotation - transform.parent.eulerAngles.y, 0) * new Vector3(0, 0, -bodyBack);
+        TargetTransform.localPosition = Quaternion.Euler(0, _realRotation - rootYaw, 0) * new Vector3(0, 0, -bodyBack);
+    }
+
+    /// <summary>
+    /// AnimatorIKForwarder 등 외부 프록시에서 중계 호출하는 IK 콜백.
+    /// </summary>
+    public void OnForwardedAnimatorIK(int layerIndex)
+    {
+        ProcessAnimatorIK(layerIndex);
     }
 
     private void OnAnimatorIK(int layerIndex)
+    {
+        ProcessAnimatorIK(layerIndex);
+    }
+
+    private void ProcessAnimatorIK(int layerIndex)
     {
         // 0번(Base Layer)에서만 IK를 수행하여 레이어 중복 연산 방지
         if (layerIndex != 0) return;
 
         bool isHolding = PlayerAnimation != null && PlayerAnimation.IsHoldingItem;
+
+        if (_networkAnimator == null)
+        {
+            _networkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInParent<CustomNetworkAnimator>();
+        }
 
         if (_networkAnimator != null && objectToLookAt != null)
         {
@@ -149,7 +195,7 @@ public class LookAtController : PlayerComponent
             else
             {
                 // 가슴/눈 높이(Y: ~1.4m) 기준으로 상대 벡터 계산하여 발바닥 Atan2 왜곡 방지
-                Vector3 origin = _chestTransform != null ? _chestTransform.position : transform.position + Vector3.up * 1.4f;
+                Vector3 origin = _chestTransform != null ? _chestTransform.position : TargetTransform.position + Vector3.up * 1.4f;
                 Vector3 lookDir = objectToLookAt.position - origin;
                 float horizontalDist = new Vector2(lookDir.x, lookDir.z).magnitude;
                 if (horizontalDist > 0.001f)

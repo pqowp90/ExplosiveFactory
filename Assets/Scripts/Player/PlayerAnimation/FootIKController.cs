@@ -108,7 +108,7 @@ public class FootIKController : PlayerComponent
 
     private void Awake()
     {
-        _animator = GetComponent<Animator>();
+        InitializeAnimator();
         _leftCurveHash = Animator.StringToHash(leftFootCurveName);
         _rightCurveHash = Animator.StringToHash(rightFootCurveName);
     }
@@ -123,12 +123,35 @@ public class FootIKController : PlayerComponent
         Initialize();
     }
 
-    private void Initialize()
+    private void InitializeAnimator()
     {
         if (_animator == null)
         {
             _animator = GetComponent<Animator>();
+            if (_animator == null && PlayerBodyTransform != null)
+            {
+                _animator = PlayerBodyTransform.GetComponentInChildren<Animator>();
+            }
+            if (_animator == null)
+            {
+                _animator = GetComponentInChildren<Animator>();
+            }
         }
+    }
+
+    /// <summary>
+    /// 플레이어 모델링 교체 시 Animator 및 본 레퍼런스를 즉시 재바인딩합니다.
+    /// </summary>
+    public void RebindModel(Animator newAnimator = null)
+    {
+        _animator = newAnimator;
+        InitializeAnimator();
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        InitializeAnimator();
 
         if (_animator != null && _animator.isHuman)
         {
@@ -171,15 +194,28 @@ public class FootIKController : PlayerComponent
         return baseGroundY + raycastStartHeight;
     }
 
+    /// <summary>
+    /// AnimatorIKForwarder 등 외부 프록시에서 중계 호출하는 IK 콜백.
+    /// </summary>
+    public void OnForwardedAnimatorIK(int layerIndex)
+    {
+        ProcessAnimatorIK(layerIndex);
+    }
+
     private void OnAnimatorIK(int layerIndex)
+    {
+        ProcessAnimatorIK(layerIndex);
+    }
+
+    private void ProcessAnimatorIK(int layerIndex)
     {
         // Base Layer(0번 레이어)에서만 IK 연산 수행
         if (layerIndex != 0 || !enableFootIK) return;
 
-        if (!_isInitialized)
+        if (!_isInitialized || _animator == null)
         {
             Initialize();
-            if (!_isInitialized) return;
+            if (!_isInitialized || _animator == null) return;
         }
 
         // 지면에 닿아 있는지 확인:
@@ -412,7 +448,8 @@ public class FootIKController : PlayerComponent
         }
 
         // 양발 위치 기준 + 발바닥 중앙 오프셋 + 이동 전방 예측 반영
-        Vector3 footCenter = animFootPos + (transform.forward * footForwardOffset) + moveLead;
+        Vector3 forwardDir = PlayerBodyTransform != null ? PlayerBodyTransform.forward : transform.forward;
+        Vector3 footCenter = animFootPos + (forwardDir * footForwardOffset) + moveLead;
 
         // 앉거나 서 있거나 항상 지면 상단 안전 지대에서 수직 하향 발사
         Vector3 rayStart = new Vector3(footCenter.x, safeStartY, footCenter.z);

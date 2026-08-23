@@ -10,6 +10,7 @@ public class HandyPhoneUI : MonoBehaviour, IPoolable
 	[SerializeField] private GameObject HomeUI;
 	[SerializeField] private GameObject InviteUI;
 	[SerializeField] private GameObject BlackMarketUI;
+	[SerializeField] private GameObject WardrobeUI;
 	[SerializeField] private GameObject UpBarUI;
 	private HandyItemObject _handyItemObject;
 	[SerializeField]
@@ -25,6 +26,11 @@ public class HandyPhoneUI : MonoBehaviour, IPoolable
 	private void OnSpawned(Player player)
 	{
 		_canvas.worldCamera = player.Camera;
+		if (WardrobeUI != null)
+		{
+			var modelSelect = WardrobeUI.GetComponent<ModelSelectUI>();
+			if (modelSelect != null) modelSelect.SetLocalPlayer(player);
+		}
 	}
 
 	public void OpenHomeUI()
@@ -38,6 +44,10 @@ public class HandyPhoneUI : MonoBehaviour, IPoolable
 	public void OpenBlackMarketUI()
 	{
 		Open(BlackMarketUI);
+	}
+	public void OpenWardrobeUI()
+	{
+		Open(WardrobeUI);
 	}
 	private void Open(GameObject gameObject)
 	{
@@ -76,6 +86,7 @@ public class HandyPhoneUI : MonoBehaviour, IPoolable
 		if (HomeUI != null) HomeUI.SetActive(false);
 		if (InviteUI != null) InviteUI.SetActive(false);
 		if (BlackMarketUI != null) BlackMarketUI.SetActive(false);
+		if (WardrobeUI != null) WardrobeUI.SetActive(false);
 	}
 
 	public void OnDespawned()

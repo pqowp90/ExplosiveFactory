@@ -29,12 +29,15 @@ public class FirstPersonLegsSetup : PlayerComponent
         GameObject legsObj = Instantiate(Player.PlayerBodyTransform.gameObject, transform);
         legsObj.name = "FirstPersonLegs";
 
-        // 1인칭 다리에 불필요한 3인칭 컴포넌트 제거
+        // 1인칭 다리에 불필요한 3인칭 컴포넌트 및 포워더 제거
         var lookAt = legsObj.GetComponentInChildren<LookAtController>();
         if (lookAt != null) Destroy(lookAt);
 
         var netAnimator = legsObj.GetComponentInChildren<CustomNetworkAnimator>();
         if (netAnimator != null) Destroy(netAnimator);
+
+        var ikForwarder = legsObj.GetComponentInChildren<AnimatorIKForwarder>();
+        if (ikForwarder != null) Destroy(ikForwarder);
 
         // 1인칭 다리 제어기 추가 및 설정 전달
         var legsController = legsObj.GetComponent<FirstPersonLegsController>();
@@ -44,7 +47,7 @@ public class FirstPersonLegsSetup : PlayerComponent
         }
         legsController.settings = _settings;
 
-        // 1인칭 다리 Animator에 FootIKController 추가
+        // 1인칭 다리 Animator에 직접 FootIKController 추가 (1인칭 독립 IK 연산)
         var legAnimator = legsObj.GetComponentInChildren<Animator>();
         if (legAnimator != null && legAnimator.GetComponent<FootIKController>() == null)
         {
@@ -55,16 +58,16 @@ public class FirstPersonLegsSetup : PlayerComponent
     }
 
     /// <summary>
-    /// 3인칭 몸체 Animator에 FootIKController를 보장합니다.
+    /// 3인칭 몸체 Animator에 AnimatorIKForwarder를 보장합니다.
     /// </summary>
     private void SetupBodyFootIK()
     {
         if (Player == null || Player.PlayerBodyTransform == null) return;
 
         var bodyAnimator = Player.PlayerBodyTransform.GetComponentInChildren<Animator>();
-        if (bodyAnimator != null && bodyAnimator.GetComponent<FootIKController>() == null)
+        if (bodyAnimator != null && bodyAnimator.GetComponent<AnimatorIKForwarder>() == null)
         {
-            bodyAnimator.gameObject.AddComponent<FootIKController>();
+            bodyAnimator.gameObject.AddComponent<AnimatorIKForwarder>();
         }
     }
 }

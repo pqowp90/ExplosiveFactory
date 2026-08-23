@@ -7,15 +7,15 @@
 ## 1. 플레이어 오브젝트 계층 구조
 
 ```
-GamePlayer (NetworkIdentity, Player, LocalPlayerSetter, FirstPersonLegsSetup)
+GamePlayer (NetworkIdentity, Player, LocalPlayerSetter, FirstPersonLegsSetup, PlayerAnimation)
 ├── Rigidbody (Unity 6 Physics)
 ├── CapsuleCollider
+├── Body (PlayerBodyTransform - CustomNetworkAnimator, LookAtController, FootIKController)
+│   └── 3D 캐릭터 모델 (교체 대상 인스턴스, Animator, AnimatorIKForwarder)
 ├── FirstPersonView (로컬 플레이어만 활성화)
 │   ├── Main Camera (FPS 카메라, CameraShocShak, InteractiveRaycast)
 │   └── Arms_Root (1인칭 손 모델, SwayNBobScript, HoldSocket)
 │       └── HoldSocket (현재 들고 있는 Item 프리팹의 부모)
-├── ThirdPersonView (원격 플레이어에게만 렌더링, 그림자 전용)
-│   └── BodyMesh (3인칭 캐릭터 모델, LookAtController, PlayerAnimation, FootIKController)
 └── FirstPersonLegs (로컬 플레이어 전용 동적 생성 다리)
     └── LegsMesh (FirstPersonLegsController, FootIKController)
 ```
@@ -119,3 +119,19 @@ GamePlayer (NetworkIdentity, Player, LocalPlayerSetter, FirstPersonLegsSetup)
   - 모든 플레이어 하위 컴포넌트(`FootIKController`, `FirstPersonLegsController`, `FirstPersonLegsSetup`, `LookAtController` 등)가 `PlayerComponent`를 상속받아, 런타임에 부모 `Player` 엔티티를 자동으로 지연 캐싱합니다.
 - **손쉬운 서브시스템 상호 참조:**
   - `PlayerMove`, `PlayerRotate`, `PlayerAnimation`, `ItemHolder`, `InputController`, `LegsSetup`, `Camera`, `IsOwned` 등의 편의 프로퍼티를 즉시 제공하여 `GetComponent` 보일러플레이트와 NullReference 예외를 원천 방지합니다.
+
+---
+
+## 9. 3D 캐릭터 모델 교체 및 스킨 시스템 (`PlayerSkinController.cs`)
+
+- **ScriptableObject 기반 스킨 데이터 관리 (`PlayerSkinData.cs` & `PlayerSkinDatabase.cs`):**
+  - 캐릭터 3D 모델 프리팹, 이름, 설명, UI 아이콘을 ScriptableObject 에셋으로 관리합니다 (`Resources/SkinData/`).
+- **네트워크 멀티플레이어 실시간 동기화:**
+  - `PlayerSkinController` (`NetworkBehaviour`)가 `SyncVar`, `[Command]`, `[ClientRpc]`를 통해 모델 변경을 모든 접속자에게 실시간 브로드캐스팅합니다.
+  - 중도 접속자도 `SyncVar hook`을 통해 다른 플레이어들의 현재 스킨을 즉시 인스턴스화하여 렌더링합니다.
+- **자동 리바인딩 파이프라인:**
+  - 모델 교체 시 `Body` 오브젝트 하위의 기존 모델을 제거하고 새 프리팹을 스폰한 뒤, `Player.SetPlayerBody(newModelTransform)`를 호출합니다.
+  - `CustomNetworkAnimator`가 새 Animator에 기존 동기화 파라미터를 일괄 주입하고, `LookAtController` 및 `FootIKController`가 새 본(Bones)을 자동 바인딩합니다.
+- **핸드폰 UI 연동 (`ModelSelectUI.cs`):**
+  - 스마트폰 인게임 UI(`CellPhone.prefab`)의 '외형 변경' 앱을 통해 실시간으로 스킨을 선택하고 교체할 수 있습니다.
+

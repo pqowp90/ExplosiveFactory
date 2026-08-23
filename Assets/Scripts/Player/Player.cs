@@ -17,6 +17,10 @@ public class Player : NetworkBehaviour, IPoolable
     public PlayerInput PlayerInput { get; private set; }
     public InputController InputController { get; private set; }
     public FirstPersonLegsSetup LegsSetup { get; private set; }
+    public CustomNetworkAnimator CustomNetworkAnimator { get; private set; }
+    public LookAtController LookAtController { get; private set; }
+    public FootIKController FootIKController { get; private set; }
+    public PlayerSkinController PlayerSkinController { get; private set; }
 
     [Header("Model Transforms")]
     public Transform PlayerBodyTransform;
@@ -37,6 +41,47 @@ public class Player : NetworkBehaviour, IPoolable
         PlayerInput = GetComponent<PlayerInput>();
         InputController = GetComponent<InputController>();
         LegsSetup = GetComponent<FirstPersonLegsSetup>() ?? gameObject.AddComponent<FirstPersonLegsSetup>();
+        CustomNetworkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInChildren<CustomNetworkAnimator>();
+        LookAtController = GetComponent<LookAtController>() ?? GetComponentInChildren<LookAtController>();
+        FootIKController = GetComponent<FootIKController>() ?? GetComponentInChildren<FootIKController>();
+        PlayerSkinController = GetComponent<PlayerSkinController>();
+    }
+
+    /// <summary>
+    /// 플레이어 3인칭 모델링을 교체(스왑)하고 모든 애니메이션 및 IK 서브시스템을 새 모델에 맞게 일괄 갱신합니다.
+    /// </summary>
+    public void SetPlayerBody(Transform newBodyTransform)
+    {
+        PlayerBodyTransform = newBodyTransform;
+        if (newBodyTransform == null) return;
+
+        var newAnimator = newBodyTransform.GetComponentInChildren<Animator>();
+
+        // AnimatorIKForwarder 보장
+        if (newAnimator != null && newAnimator.GetComponent<AnimatorIKForwarder>() == null)
+        {
+            newAnimator.gameObject.AddComponent<AnimatorIKForwarder>();
+        }
+
+        if (CustomNetworkAnimator != null)
+        {
+            CustomNetworkAnimator.SetAnimator(newAnimator);
+        }
+
+        if (LookAtController != null)
+        {
+            LookAtController.RebindModel(newBodyTransform, newAnimator);
+        }
+
+        if (FootIKController != null)
+        {
+            FootIKController.RebindModel(newAnimator);
+        }
+
+        if (PlayerAnimation != null)
+        {
+            PlayerAnimation.RebindBodyAnimator(CustomNetworkAnimator);
+        }
     }
 
     public void OnSpawned()

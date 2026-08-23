@@ -38,11 +38,16 @@
 | `Player/Move/SwayNBobScript.cs` | `SwayNBobScript` | 1인칭 시점 무기/손의 이동 밥(Bobbing) 및 마우스 회전 스웨이(Sway) 물리적 흔들림 효과 연출. |
 | `Player/PlayerAnimation/PlayerAnimation.cs` | `PlayerAnimation` | 1인칭/3인칭 애니메이터 제어 및 이동 상태(속도, 점프, 앉기) 파라미터 갱신. |
 | `Player/PlayerAnimation/IMovementAnimation.cs` | `IMovementAnimation` | 이동 애니메이션 상태 갱신을 위한 공용 인터페이스. |
-| `Player/PlayerAnimation/LookAtController.cs` | `LookAtController` | 3인칭 모델의 머리/상체가 카메라 시선 방향을 자연스럽게 바라보도록 하는 절차적 IK/LookAt 제어. |
+| `Player/PlayerAnimation/LookAtController.cs` | `LookAtController` | 부모(Player 루트)에 위치하여 3인칭 모델의 머리/상체가 카메라 시선 방향을 자연스럽게 바라보도록 하는 절차적 IK/LookAt 제어 및 모델 스왑 리바인딩 지원. |
+| `Player/PlayerAnimation/FootIKController.cs` | `FootIKController` | 부모(Player 루트) 및 1인칭 다리에 적용되는 경사면/지형 대응 Foot IK 제어기. 양발 Raycast를 통한 지면 법선(Normal) 회전 정렬, 골반(Pelvis) 높이 자동 보정 및 모델 스왑 리바인딩 제공. |
+| `Player/PlayerAnimation/AnimatorIKForwarder.cs` | `AnimatorIKForwarder` | 자식 모델 오브젝트에서 유니티 `OnAnimatorIK` 이벤트를 수신하여 부모의 `LookAtController` 및 `FootIKController`로 중계하는 가벼운 프록시 컴포넌트. |
 | `Player/PlayerAnimation/FirstPersonLegsController.cs` | `FirstPersonLegsController` | 1인칭 전용 다리(Legs) 제어 컴포넌트. 자식 Animator 및 본 자동 탐색, 팔/머리/목/어깨/손 본 (0,0,0) 강제 축소, 상체(Spine/Chest) 및 다리 루트 카메라 후방 오프셋/Pitch 비례 보정으로 시야 간섭 없는 완벽한 하체 렌더링 지원. |
-| `Player/PlayerAnimation/FirstPersonLegsSetup.cs` | `FirstPersonLegsSetup` | 1인칭 다리 모델 인스턴스화, 불필요 컴포넌트 정리 및 1인칭/3인칭 Foot IK 자동 연결을 전담하는 셋업 컴포넌트. |
+| `Player/PlayerAnimation/FirstPersonLegsSetup.cs` | `FirstPersonLegsSetup` | 1인칭 다리 모델 인스턴스화, 불필요 컴포넌트 정리 및 1인칭/3인칭 Foot IK/Forwarder 자동 연결을 전담하는 셋업 컴포넌트. |
 | `Player/PlayerAnimation/FirstPersonLegsSettings.cs` | `FirstPersonLegsSettings` | 1인칭 다리 및 상체 오프셋(서 있을 때/앉았을 때) 세팅 데이터 클래스. |
-| `Player/PlayerAnimation/FootIKController.cs` | `FootIKController` | 3인칭 바디 및 1인칭 다리에 적용되는 경사면/지형 대응 Foot IK 제어기. 양발 Raycast를 통한 지면 법선(Normal) 회전 정렬, 골반(Pelvis) 높이 자동 보정 및 체공/스윙 페이즈 블렌딩 제공. |
+| `Player/Skin/PlayerSkinData.cs` | `PlayerSkinData` | 플레이어 3인칭 캐릭터 모델링 스킨 ScriptableObject 메타데이터 (이름, 설명, 아이콘, 3D 모델 프리팹). |
+| `Player/Skin/PlayerSkinDatabase.cs` | `PlayerSkinDatabase` | 등록된 전체 스킨 목록을 관리하는 ScriptableObject 데이터베이스. Resources/SkinData 경로에서 자동 로드. |
+| `Player/Skin/PlayerSkinController.cs` | `PlayerSkinController` | 플레이어 캐릭터 모델 교체 및 네트워크 동기화 전담 컴포넌트 (`NetworkBehaviour`). SyncVar/Command/ClientRpc를 통해 모든 접속자에게 실시간 모델 교체 동기화. |
+| `UI/ModelSelectUI.cs` | `ModelSelectUI` | 핸드폰 UI 내 캐릭터 모델(스킨) 선택 화면 제어 컴포넌트. 스킨 목록 표시 및 버튼 클릭 시 `PlayerSkinController.CmdChangeSkin` 호출. |
 
 ---
 

@@ -31,13 +31,10 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     private void Awake()
     {
         _player = GetComponent<Player>();
-        if (_player != null && _player.PlayerBodyTransform != null)
+        _bodyCustomNetworkAnimator = GetComponent<CustomNetworkAnimator>() ?? GetComponentInChildren<CustomNetworkAnimator>();
+        if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
         {
-            _bodyCustomNetworkAnimator = _player.PlayerBodyTransform.GetComponentInChildren<CustomNetworkAnimator>();
-            if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
-            {
-                _defaultBodyController = _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController;
-            }
+            _defaultBodyController = _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController;
         }
         if (_player != null && _player.PlayerLegTransform != null)
         {
@@ -85,6 +82,18 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         if (_handAnimator != null)
         {
             _handAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
+    }
+
+    /// <summary>
+    /// 모델링 교체 시 새 CustomNetworkAnimator 및 기본 컨트롤러를 재바인딩합니다.
+    /// </summary>
+    public void RebindBodyAnimator(CustomNetworkAnimator customNetworkAnimator)
+    {
+        _bodyCustomNetworkAnimator = customNetworkAnimator;
+        if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
+        {
+            _defaultBodyController = _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController;
         }
     }
     [Command(requiresAuthority = false)]
