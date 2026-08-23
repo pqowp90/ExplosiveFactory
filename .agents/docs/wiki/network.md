@@ -21,12 +21,12 @@
 
 ## 2. 핵심 규칙 및 원칙
 
-### A. 프리팹 스폰 위치 규칙
+### A. 프리팹 스폰 위치 및 풀링 등록 규칙
 - 네트워크 상에서 `NetworkServer.Spawn`을 호출할 모든 프리팹은 반드시 **`Assets/Resources/Network/`** 디렉토리에 보관되어야 합니다.
-- `CustomNetworkManager.EnsurePrefabsLoaded()` 및 에디터 포스트프로세서(`NetworkPrefabPostprocessor.cs`)가 이 디렉토리를 스캔하여 Mirror의 `spawnPrefabs`에 자동 등록합니다.
+- `NetworkPoolManager.RegisterNetworkPrefabs()`가 이 디렉토리의 모든 `NetworkIdentity` 프리팹을 스캔하여 Mirror의 `SpawnHandler`/`UnSpawnHandler`를 통해 로컬 `PoolManager`와 연동 등록합니다.
 
-### C. NetworkPoolManager를 통한 전면적 풀링 스폰 (SSOT)
-- 네트워크 상에서 생성/파괴되는 모든 엔티티(아이템, 자판기, 투사체 등)는 `Instantiate`/`Destroy` 대신 **`NetworkPoolManager.Get(...)` 및 `NetworkPoolManager.Release(...)`를 전적으로 사용**합니다.
+### B. NetworkPoolManager를 통한 전면적 풀링 스폰 (SSOT)
+- 네트워크 상에서 생성/파괴되는 모든 엔티티(플레이어, 아이템, 자판기, 투사체 등)는 `NetworkPoolManager`를 통해 풀링 스폰 및 동기화됩니다.
 - 클라이언트는 Mirror의 `SpawnHandler`/`UnSpawnHandler`를 통해 로컬 `PoolManager`와 연동되어 GC 부하 없이 오브젝트를 재사용합니다.
 
 ---

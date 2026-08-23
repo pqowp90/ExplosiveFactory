@@ -116,24 +116,6 @@ namespace ExplosiveFactory.Network
             }
 
             if (playerPrefab == null) playerPrefab = lobbyPlayerPrefab;
-
-            if (gamePlayerPrefab != null)
-            {
-                if (!spawnPrefabs.Contains(gamePlayerPrefab)) spawnPrefabs.Add(gamePlayerPrefab);
-                if (NetworkClient.active && gamePlayerPrefab.TryGetComponent<NetworkIdentity>(out var gpNetId) && !NetworkClient.prefabs.ContainsKey(gpNetId.assetId))
-                {
-                    NetworkClient.RegisterPrefab(gamePlayerPrefab);
-                }
-            }
-
-            if (lobbyPlayerPrefab != null)
-            {
-                if (!spawnPrefabs.Contains(lobbyPlayerPrefab)) spawnPrefabs.Add(lobbyPlayerPrefab);
-                if (NetworkClient.active && lobbyPlayerPrefab.TryGetComponent<NetworkIdentity>(out var lpNetId) && !NetworkClient.prefabs.ContainsKey(lpNetId.assetId))
-                {
-                    NetworkClient.RegisterPrefab(lobbyPlayerPrefab);
-                }
-            }
         }
 
         public override void Start()

@@ -116,11 +116,16 @@ public partial class NetworkPoolManager : NetworkSingleton<NetworkPoolManager>
         var allNetPrefabs = Resources.LoadAll<NetworkIdentity>("Network");
         foreach (var netId in allNetPrefabs)
         {
-            if (netId != null)
+            if (netId == null || netId.assetId == 0) continue;
+
+            NetWorkPrefabs.Add(netId);
+
+            if (NetworkClient.prefabs.ContainsKey(netId.assetId))
             {
-                NetWorkPrefabs.Add(netId);
-                NetworkClient.RegisterPrefab(netId.gameObject, SpawnHandler, UnSpawnHandler);
+                NetworkClient.UnregisterPrefab(netId.gameObject);
             }
+
+            NetworkClient.RegisterPrefab(netId.gameObject, SpawnHandler, UnSpawnHandler);
         }
     }
 
