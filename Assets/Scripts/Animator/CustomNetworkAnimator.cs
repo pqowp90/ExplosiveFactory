@@ -19,12 +19,14 @@ public class CustomNetworkAnimator : NetworkBehaviour
     private readonly Dictionary<int, AnimatorParameter> _parameterDictionary = new();
     private AnimatorControllerParameter[] _parameters;
     private bool _isInitialized = false;
+    private float _currentSpeed = 1f;
 
     public float Speed
     {
-        get { return Animator != null ? Animator.speed : 1f; }
+        get { return Animator != null ? Animator.speed : _currentSpeed; }
         set
         {
+            _currentSpeed = value;
             if (Animator != null) Animator.speed = value;
             if (isServer)
                 RpcChangeAnimatorSpeed(value);
@@ -36,6 +38,7 @@ public class CustomNetworkAnimator : NetworkBehaviour
     [ClientRpc]
     private void RpcChangeAnimatorSpeed(float speed)
     {
+        _currentSpeed = speed;
         if (isOwned) return;
         if (Animator != null) Animator.speed = speed;
     }
@@ -49,17 +52,48 @@ public class CustomNetworkAnimator : NetworkBehaviour
     private void Awake()
     {
         _parameterDictionary.Clear();
-        Animator = GetComponent<Animator>();
+        if (Animator == null)
+        {
+            Animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+        }
         if (Animator != null)
         {
             Animator.keepAnimatorStateOnDisable = true;
         }
     }
 
+    /// <summary>
+    /// 플레이어 모델링 교체 시 새 Animator를 바인딩하고 기존 파라미터 및 속도 값을 새 Animator에 일괄 세팅합니다.
+    /// </summary>
+    public void SetAnimator(Animator newAnimator)
+    {
+        Animator = newAnimator;
+        if (Animator == null) return;
+
+        Animator.keepAnimatorStateOnDisable = true;
+        Animator.speed = _currentSpeed;
+
+        InitializeParameters();
+        ApplyAllParametersToAnimator();
+    }
+
+    /// <summary>
+    /// 현재 캐시 및 동기화된 모든 파라미터 값을 Animator에 즉시 일괄 적용합니다.
+    /// </summary>
+    public void ApplyAllParametersToAnimator()
+    {
+        if (Animator == null) return;
+
+        foreach (var kvp in _parameterDictionary)
+        {
+            SaveParameterValue(kvp.Value);
+        }
+    }
+
     public override void OnStartServer()
     {
         base.OnStartServer();
-        if (Animator == null) Animator = GetComponent<Animator>();
+        if (Animator == null) Animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         if (Animator == null) return;
 
         InitializeParameters();
@@ -69,7 +103,7 @@ public class CustomNetworkAnimator : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
-        if (Animator == null) Animator = GetComponent<Animator>();
+        if (Animator == null) Animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         if (Animator == null) return;
 
         _syncParameters.Callback += OnParametersChanged;
@@ -81,7 +115,6 @@ public class CustomNetworkAnimator : NetworkBehaviour
     {
         if (Animator == null || Animator.runtimeAnimatorController == null) return;
         _parameters = Animator.parameters;
-        _parameterDictionary.Clear();
 
         if (isServer && _syncParameters.Count == 0)
         {
@@ -177,6 +210,7 @@ public class CustomNetworkAnimator : NetworkBehaviour
     public void SetBool(int id, bool value)
     {
         if (Animator != null) Animator.SetBool(id, value);
+        SetParameterValue(id, value.ToString());
         if (isServer) RpcSetParameterValue(id, value.ToString());
         else CmdChangeValue(id, value.ToString());
     }
@@ -189,6 +223,7 @@ public class CustomNetworkAnimator : NetworkBehaviour
     public void SetFloat(int id, float value)
     {
         if (Animator != null) Animator.SetFloat(id, value);
+        SetParameterValue(id, value.ToString());
         if (isServer) RpcSetParameterValue(id, value.ToString());
         else CmdChangeValue(id, value.ToString());
     }
@@ -201,6 +236,7 @@ public class CustomNetworkAnimator : NetworkBehaviour
     public void SetInteger(int id, int value)
     {
         if (Animator != null) Animator.SetInteger(id, value);
+        SetParameterValue(id, value.ToString());
         if (isServer) RpcSetParameterValue(id, value.ToString());
         else CmdChangeValue(id, value.ToString());
     }
