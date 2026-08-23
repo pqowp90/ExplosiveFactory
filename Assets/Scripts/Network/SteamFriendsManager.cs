@@ -71,8 +71,8 @@ namespace ExplosiveFactory.Network
                 {
                     if (mode == FriendObjectMode.Join)
                     {
-                        bool aHasLobby = a.IsPlayingThisGame && a.GameInfo.HasValue && a.GameInfo.Value.LobbyId.IsValid;
-                        bool bHasLobby = b.IsPlayingThisGame && b.GameInfo.HasValue && b.GameInfo.Value.LobbyId.IsValid;
+                        bool aHasLobby = a.IsPlayingThisGame && a.GameInfo.HasValue && a.GameInfo.Value.Lobby.HasValue && a.GameInfo.Value.Lobby.Value.Id.IsValid;
+                        bool bHasLobby = b.IsPlayingThisGame && b.GameInfo.HasValue && b.GameInfo.Value.Lobby.HasValue && b.GameInfo.Value.Lobby.Value.Id.IsValid;
                         if (aHasLobby != bHasLobby) return bHasLobby.CompareTo(aHasLobby);
                     }
 
@@ -87,9 +87,9 @@ namespace ExplosiveFactory.Network
                     item.SetActive(true);
 
                     SteamId? lobbyId = null;
-                    if (friend.GameInfo.HasValue && friend.GameInfo.Value.LobbyId.IsValid)
+                    if (friend.GameInfo.HasValue && friend.GameInfo.Value.Lobby.HasValue && friend.GameInfo.Value.Lobby.Value.Id.IsValid)
                     {
-                        lobbyId = friend.GameInfo.Value.LobbyId;
+                        lobbyId = friend.GameInfo.Value.Lobby.Value.Id;
                     }
 
                     var fo = item.GetComponent<FriendObject>() ?? item.GetComponentInChildren<FriendObject>();
