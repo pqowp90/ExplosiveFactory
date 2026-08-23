@@ -121,6 +121,9 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     private void Update()
     {
         _crouch = Mathf.Lerp(_crouch, _isCrouching ? 1f : 0f, Time.deltaTime * 9f);
+        if (_crouch < 0.001f) _crouch = 0f;
+        else if (_crouch > 0.999f) _crouch = 1f;
+
         if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
             _bodyCustomNetworkAnimator.Animator.SetFloat(IMovementAnimation.Crouch, _crouch);
         if (_handAnimator != null)
@@ -136,6 +139,7 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
         else
         {
             _HandRun = Mathf.Lerp(_HandRun, _isRunning ? 1f : 0f, Time.deltaTime * 6f * (_isRunning ? 1f : 3f)) * _moveValue.magnitude;
+            if (_HandRun < 0.001f) _HandRun = 0f;
         }
 
         if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
@@ -207,9 +211,21 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     // ------------------------------------------------- //
     public void SetGrounded(bool grounded)
     {
-        if (_bodyCustomNetworkAnimator != null) _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Grounded, grounded);
-        if (_handAnimator != null) _handAnimator.SetBool(IMovementAnimation.Grounded, grounded);
-        if (_legAnimator != null) _legAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+        if (_bodyCustomNetworkAnimator != null)
+        {
+            _bodyCustomNetworkAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+            if (grounded) _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveZ, 0f);
+        }
+        if (_handAnimator != null)
+        {
+            _handAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+            if (grounded) _handAnimator.SetFloat(IMovementAnimation.MoveZ, 0f);
+        }
+        if (_legAnimator != null)
+        {
+            _legAnimator.SetBool(IMovementAnimation.Grounded, grounded);
+            if (grounded) _legAnimator.SetFloat(IMovementAnimation.MoveZ, 0f);
+        }
     }
 
     public void SetJump()
@@ -250,29 +266,34 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     public bool IsMoving => _moveValue.magnitude > 0.1f;
     public void SetMove(Vector3 move)
     {
+        float mx = Mathf.Abs(move.x) < 0.001f ? 0f : move.x;
+        float my = Mathf.Abs(move.y) < 0.001f ? 0f : move.y;
+        float mz = Mathf.Abs(move.z) < 0.001f ? 0f : move.z;
+        bool isMoving = (Mathf.Abs(mx) + Mathf.Abs(my)) > 0.05f;
+
         if (_bodyCustomNetworkAnimator != null)
         {
-            _bodyCustomNetworkAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
-            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
-            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
-            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+            _bodyCustomNetworkAnimator.SetBool(IsMovingHash, isMoving);
+            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveX, mx);
+            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveY, my);
+            _bodyCustomNetworkAnimator.SetFloat(IMovementAnimation.MoveZ, mz);
         }
         if (_handAnimator != null)
         {
-            _handAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
-            _handAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
-            _handAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
-            _handAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+            _handAnimator.SetBool(IsMovingHash, isMoving);
+            _handAnimator.SetFloat(IMovementAnimation.MoveX, mx);
+            _handAnimator.SetFloat(IMovementAnimation.MoveY, my);
+            _handAnimator.SetFloat(IMovementAnimation.MoveZ, mz);
         }
         if (_legAnimator != null)
         {
-            _legAnimator.SetBool(IsMovingHash, Mathf.Abs(move.x) + Mathf.Abs(move.y) > 0.1f);
-            _legAnimator.SetFloat(IMovementAnimation.MoveX, move.x);
-            _legAnimator.SetFloat(IMovementAnimation.MoveY, move.y);
-            _legAnimator.SetFloat(IMovementAnimation.MoveZ, move.z);
+            _legAnimator.SetBool(IsMovingHash, isMoving);
+            _legAnimator.SetFloat(IMovementAnimation.MoveX, mx);
+            _legAnimator.SetFloat(IMovementAnimation.MoveY, my);
+            _legAnimator.SetFloat(IMovementAnimation.MoveZ, mz);
         }
 
-        _moveValue = new Vector2(move.x, move.y);
+        _moveValue = new Vector2(mx, my);
     }
 
 
@@ -329,6 +350,9 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     {
         if (isOwned && _handAnimator != null)
         {
+            _handAnimator.ResetTrigger(EquipHash);
+            _handAnimator.ResetTrigger(UnequalHash);
+
             var targetHandController = handController != null ? handController : _defaultHandController;
             if (targetHandController != null && _handAnimator.runtimeAnimatorController != targetHandController)
             {
@@ -346,6 +370,9 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
 
         if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
         {
+            _bodyCustomNetworkAnimator.Animator.ResetTrigger(EquipHash);
+            _bodyCustomNetworkAnimator.Animator.ResetTrigger(UnequalHash);
+
             var targetBodyController = bodyController != null ? bodyController : _defaultBodyController;
             if (targetBodyController != null && _bodyCustomNetworkAnimator.Animator.runtimeAnimatorController != targetBodyController)
             {
@@ -369,28 +396,44 @@ public class PlayerAnimation : NetworkBehaviour, IMovementAnimation
     public void UseItem(int index = 0)
     {
         Debug.Log(index);
-        _handAnimator.ResetTrigger(UseHash);
-        _handAnimator.ResetTrigger(Use2Hash);
-        switch (index)
+        if (_handAnimator != null)
         {
-            case 0:
-                _handAnimator.SetTrigger(UseHash);
-                break;
-            case 1:
-                _handAnimator.SetTrigger(Use2Hash);
-                break;
+            _handAnimator.ResetTrigger(UseHash);
+            _handAnimator.ResetTrigger(Use2Hash);
+            switch (index)
+            {
+                case 0:
+                    _handAnimator.SetTrigger(UseHash);
+                    break;
+                case 1:
+                    _handAnimator.SetTrigger(Use2Hash);
+                    break;
+            }
         }
     }
     public void SetHoldableItem(bool holdable)
     {
-        _handAnimator.SetBool(HoldableItemHash, holdable);
+        if (_handAnimator != null)
+        {
+            _handAnimator.SetBool(HoldableItemHash, holdable);
+        }
     }
 
     public void ResetHandyAnimation()
     {
-        _handAnimator.ResetTrigger(UseHash);
-        _handAnimator.ResetTrigger(Use2Hash);
-        _handAnimator.SetBool(HoldableItemHash, false);
+        if (_handAnimator != null)
+        {
+            _handAnimator.ResetTrigger(EquipHash);
+            _handAnimator.ResetTrigger(UnequalHash);
+            _handAnimator.ResetTrigger(UseHash);
+            _handAnimator.ResetTrigger(Use2Hash);
+            _handAnimator.SetBool(HoldableItemHash, false);
+        }
+        if (_bodyCustomNetworkAnimator != null && _bodyCustomNetworkAnimator.Animator != null)
+        {
+            _bodyCustomNetworkAnimator.Animator.ResetTrigger(EquipHash);
+            _bodyCustomNetworkAnimator.Animator.ResetTrigger(UnequalHash);
+        }
     }
 
     private int _turn = 0;

@@ -184,6 +184,10 @@ public class PlayerMove : NetworkBehaviour
             lerpSpeed = 19f;
 
         _lerpedInput = Vector2.Lerp(_lerpedInput, _moveInput.normalized, Time.deltaTime * lerpSpeed);
+        if (_moveInput == Vector2.zero && _lerpedInput.sqrMagnitude < 0.0001f)
+        {
+            _lerpedInput = Vector2.zero;
+        }
 
         MoveValue = _lerpedInput;
         //playerAnimation.isRunning = isRunning && (moveInput.magnitude > 0);
@@ -229,7 +233,8 @@ public class PlayerMove : NetworkBehaviour
             downForce = -DownDown * Vector3.up;
         }
 
-        _playerAnimator.SetMove(new Vector3(_lerpedInput.x, _lerpedInput.y, curVelocity.y));
+        float zVelocity = isGrounded ? 0f : curVelocity.y;
+        _playerAnimator.SetMove(new Vector3(_lerpedInput.x, _lerpedInput.y, zVelocity));
 
         controller.Move((curVelocity + addForce + downForce) * Time.deltaTime);
 

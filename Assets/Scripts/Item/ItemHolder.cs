@@ -282,6 +282,7 @@ public class ItemHolder : NetworkBehaviour
         if (_player != null && _player.PlayerAnimation != null)
         {
             _player.PlayerAnimation.ResetJump();
+            _player.PlayerAnimation.ResetHandyAnimation();
         }
 
         // 기존 쥐고 있던 HandyObject 정리
