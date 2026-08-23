@@ -460,28 +460,22 @@ public class ItemHolder : NetworkBehaviour
         Transform rightHand = null;
         Transform leftHand = null;
 
-        var animator = newBodyTransform.GetComponentInChildren<Animator>();
-        if (animator != null && animator.isHuman)
+        // 1. 모델 루트의 CharacterModelSockets 컴포넌트로부터 직렬화된 소켓 취득 (최우선)
+        var modelSockets = newBodyTransform.GetComponentInChildren<CharacterModelSockets>();
+        if (modelSockets != null)
         {
-            rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-            leftHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            rightHand = modelSockets.RightHandSocket;
+            leftHand = modelSockets.LeftHandSocket;
         }
 
-        // 이름 기반 폴백 탐색
+        // 2. 소켓 컴포넌트가 없을 경우 휴머노이드 Animator 본으로 안전 폴백
         if (rightHand == null || leftHand == null)
         {
-            var allTransforms = newBodyTransform.GetComponentsInChildren<Transform>(true);
-            foreach (var t in allTransforms)
+            var animator = newBodyTransform.GetComponentInChildren<Animator>();
+            if (animator != null && animator.isHuman)
             {
-                string lower = t.name.ToLower();
-                if (rightHand == null && (lower.Contains("righthand") || lower.Contains("hand.r") || lower.Contains("hand_r") || lower.EndsWith(":righthand") || lower == "right hand"))
-                {
-                    rightHand = t;
-                }
-                if (leftHand == null && (lower.Contains("lefthand") || lower.Contains("hand.l") || lower.Contains("hand_l") || lower.EndsWith(":lefthand") || lower == "left hand"))
-                {
-                    leftHand = t;
-                }
+                if (rightHand == null) rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                if (leftHand == null) leftHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
             }
         }
 

@@ -47,6 +47,7 @@
 | `Player/Skin/PlayerSkinData.cs` | `PlayerSkinData` | 플레이어 3인칭 캐릭터 모델링 스킨 ScriptableObject 메타데이터 (이름, 설명, 아이콘, 3D 모델 프리팹). |
 | `Player/Skin/PlayerSkinDatabase.cs` | `PlayerSkinDatabase` | 등록된 전체 스킨 목록을 관리하는 ScriptableObject 데이터베이스. Resources/SkinData 경로에서 자동 로드. |
 | `Player/Skin/PlayerSkinController.cs` | `PlayerSkinController` | 플레이어 캐릭터 모델 교체 및 네트워크 동기화 전담 컴포넌트 (`NetworkBehaviour`). SyncVar/Command/ClientRpc를 통해 모든 접속자에게 실시간 모델 교체 동기화. |
+| `Player/Skin/CharacterModelSockets.cs` | `CharacterModelSockets` | 각 3D 캐릭터 모델 프리팹 루트에 부착되어 오른손/왼손 아이템 부착 소켓 트랜스폼 레퍼런스를 직렬화(`[SerializeField]`)하여 관리하는 소켓 컴포넌트. |
 | `UI/ModelSelectUI.cs` | `ModelSelectUI` | 핸드폰 UI 내 캐릭터 모델(스킨) 선택 화면 제어 컴포넌트. 스킨 목록 표시 및 버튼 클릭 시 `PlayerSkinController.CmdChangeSkin` 호출. |
 
 ---

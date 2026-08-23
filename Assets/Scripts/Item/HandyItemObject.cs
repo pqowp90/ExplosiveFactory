@@ -151,17 +151,21 @@ public class HandyItemObject : MonoBehaviour
     }
 
     /// <summary>
-    /// 대상 부모 소켓에 부착하며, 부모 본의 lossyScale에 영향을 받지 않고 프리팹 원본 월드 크기를 유지하도록 스케일을 보정합니다.
+    /// 대상 부모 소켓에 부착하며, 소켓의 월드 스케일을 (1, 1, 1)로 정규화하여 BodyOffset 및 아이템 크기 왜곡을 원천 차단합니다.
     /// </summary>
     public void AttachToSocket(Transform parentSocket, Vector3 localOffset, Vector3 localRotation)
     {
         if (parentSocket == null) return;
 
+        // 1. 소켓의 월드 스케일을 (1, 1, 1)로 정규화하여 BodyOffset의 1:1 월드 미터 단위 이동 보장
+        CharacterModelSockets.NormalizeSocket(parentSocket);
+
+        // 2. 소켓의 자식으로 부착 및 오프셋 적용
         transform.SetParent(parentSocket, false);
         transform.localPosition = localOffset;
         transform.localRotation = Quaternion.Euler(localRotation);
 
-        // 부모의 lossyScale 역보정을 통해 실제 보이는 크기를 _initialLocalScale로 완벽 고정
+        // 3. 부모 lossyScale 역보정을 통해 실제 보이는 크기를 _initialLocalScale로 완벽 고정
         Vector3 parentLossy = parentSocket.lossyScale;
         transform.localScale = new Vector3(
             Mathf.Abs(parentLossy.x) > 0.0001f ? _initialLocalScale.x / parentLossy.x : _initialLocalScale.x,

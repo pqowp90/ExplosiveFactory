@@ -1,5 +1,67 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2351896719709044448
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5737863452707900563}
+  m_Layer: 0
+  m_Name: ItemSocket_Left
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5737863452707900563
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2351896719709044448}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.39370075, y: 0.3937006, z: 0.39370057}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1736231357107328730}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6353130770868298205
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5890300597724901087}
+  m_Layer: 0
+  m_Name: ItemSocket_Right
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5890300597724901087
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6353130770868298205}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.39370066, y: 0.39370057, z: 0.39370054}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5353939205418911455}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &6159187500402382171
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62,6 +124,44 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -3647491980541017215, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5737863452707900563}
+    - targetCorrespondingSourceObject: {fileID: -6974713316051872892, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5890300597724901087}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7067409600517856244}
   m_SourcePrefab: {fileID: 100100000, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+--- !u!4 &1736231357107328730 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3647491980541017215, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+  m_PrefabInstance: {fileID: 6159187500402382171}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5353939205418911455 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6974713316051872892, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+  m_PrefabInstance: {fileID: 6159187500402382171}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6465125863037839370 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c445925be12dc54aa0b73b6e00acb15, type: 3}
+  m_PrefabInstance: {fileID: 6159187500402382171}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7067409600517856244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465125863037839370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c00b62476f02bc428e4914422d14e92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ExplosiveFactory.Scripts::CharacterModelSockets
+  _rightHandSocket: {fileID: 5890300597724901087}
+  _leftHandSocket: {fileID: 5737863452707900563}
